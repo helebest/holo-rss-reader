@@ -5,7 +5,11 @@ import pytest
 import feedparser
 from pathlib import Path
 
-from holo_rss_reader import fetcher, parser
+import sys
+sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+
+import fetcher
+import parser
 
 
 class TestParseArticle:

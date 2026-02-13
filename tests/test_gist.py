@@ -5,7 +5,10 @@ import pytest
 import responses
 from pathlib import Path
 
-from holo_rss_reader import gist
+import sys
+sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+
+import gist
 
 
 class TestExtractGistId:

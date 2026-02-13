@@ -6,7 +6,10 @@ import responses
 from pathlib import Path
 import feedparser
 
-from holo_rss_reader import fetcher
+import sys
+sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+
+import fetcher
 
 
 class TestFetchFeed:
