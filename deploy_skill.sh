@@ -45,8 +45,9 @@ for item in "${DEPLOY_ITEMS[@]}"; do
     fi
 done
 
-# Remove deploy script and cache if accidentally copied
+# Remove deploy script, cache and unnecessary files
 rm -f "$TARGET_PATH/scripts/deploy_skill.sh" 2>/dev/null || true
+rm -f "$TARGET_PATH/scripts/__init__.py" 2>/dev/null || true
 rm -rf "$TARGET_PATH"/*/__pycache__ 2>/dev/null || true
 
 echo ""
