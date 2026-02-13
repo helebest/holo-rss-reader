@@ -3,12 +3,11 @@
 # Holo RSS Reader - Bash wrapper
 # 用法: bash rss.sh <command> [args...]
 
-# 获取脚本所在目录
+# 获取脚本所在目录（也是项目根目录）
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
-# 使用 uv 运行 Python
-PYTHON_CMD="uv run python"
+# 使用系统 Python（依赖已全局安装）
+PYTHON_CMD="python3"
 
 # 默认 Gist URL
 DEFAULT_GIST="https://gist.github.com/emschwartz/e6d2bf860ccc367fe37ff953ba6de66b"
@@ -20,7 +19,7 @@ shift || true
 case "$CMD" in
     list)
         GIST_URL="${1:-$DEFAULT_GIST}"
-        $PYTHON_CMD "$PROJECT_DIR/main.py" list --gist "$GIST_URL"
+        $PYTHON_CMD "$SCRIPT_DIR/main.py" list --gist "$GIST_URL"
         ;;
     read)
         FEED_URL="$1"
@@ -29,12 +28,12 @@ case "$CMD" in
             echo "用法: bash rss.sh read <feed-url> [limit]"
             exit 1
         fi
-        $PYTHON_CMD "$PROJECT_DIR/main.py" read "$FEED_URL" --limit "$LIMIT"
+        $PYTHON_CMD "$SCRIPT_DIR/main.py" read "$FEED_URL" --limit "$LIMIT"
         ;;
     import)
         GIST_URL="${1:-$DEFAULT_GIST}"
         LIMIT="${2:-3}"
-        $PYTHON_CMD "$PROJECT_DIR/main.py" import --gist "$GIST_URL" --limit "$LIMIT"
+        $PYTHON_CMD "$SCRIPT_DIR/main.py" import --gist "$GIST_URL" --limit "$LIMIT"
         ;;
     *)
         echo "Holo RSS Reader"

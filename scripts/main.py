@@ -5,7 +5,9 @@ import argparse
 import sys
 from pathlib import Path
 
-from holo_rss_reader import gist, fetcher, parser
+import gist
+import fetcher
+import parser
 
 
 DEFAULT_GIST_URL = "https://gist.github.com/emschwartz/e6d2bf860ccc367fe37ff953ba6de66b"

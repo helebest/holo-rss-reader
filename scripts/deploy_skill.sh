@@ -31,10 +31,8 @@ mkdir -p "$TARGET_PATH"
 
 # Files and directories to copy (independent of project)
 DEPLOY_ITEMS=(
-    "holo_rss_reader"
-    "scripts"
-    "main.py"
     "SKILL.md"
+    "scripts"
 )
 
 # Copy each item
