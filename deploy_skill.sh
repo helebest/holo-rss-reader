@@ -6,9 +6,8 @@
 
 set -e
 
-# Get the directory where this script is located
+# Get the directory where this script is located (project root)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # Check arguments
 if [ $# -lt 1 ]; then
@@ -37,10 +36,10 @@ DEPLOY_ITEMS=(
 
 # Copy each item
 for item in "${DEPLOY_ITEMS[@]}"; do
-    if [ -e "$PROJECT_ROOT/$item" ]; then
+    if [ -e "$SCRIPT_DIR/$item" ]; then
         echo "Copying $item..."
         rm -rf "$TARGET_PATH/$item" 2>/dev/null || true
-        cp -r "$PROJECT_ROOT/$item" "$TARGET_PATH/"
+        cp -r "$SCRIPT_DIR/$item" "$TARGET_PATH/"
     else
         echo "Warning: $item not found, skipping"
     fi
