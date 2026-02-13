@@ -12,13 +12,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Global venv path - detect from environment or common locations
 if [ -n "$OPENCLAW_HOME" ]; then
     GLOBAL_VENV="$OPENCLAW_HOME/.venv"
+elif [ -d "$HOME/.openclaw/.venv" ]; then
+    GLOBAL_VENV="$HOME/.openclaw/.venv"
 elif [ -d "/mnt/usb/holobot/.openclaw/.venv" ]; then
     GLOBAL_VENV="/mnt/usb/holobot/.openclaw/.venv"
 else
-    # Try to detect from current path
-    SCRIPT_DIR_ABS="$(cd "$SCRIPT_DIR" && pwd)"
-    # Assume projects are in /mnt/usb/projects/ and OpenClaw is at /mnt/usb/holobot/.openclaw/
-    GLOBAL_VENV="/mnt/usb/holobot/.openclaw/.venv"
+    echo "Error: Could not find global venv"
+    exit 1
 fi
 
 # Check arguments
