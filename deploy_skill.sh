@@ -57,5 +57,10 @@ echo "Installing dependencies..."
 cd "$TARGET_PATH"
 uv sync
 
+# Remove pyproject.toml after installation (not needed at runtime)
+rm -f "$TARGET_PATH/pyproject.toml"
+rm -f "$TARGET_PATH/uv.lock"
+rm -rf "$TARGET_PATH"/*.egg-info
+
 echo ""
 echo "✅ Deployment complete!"
