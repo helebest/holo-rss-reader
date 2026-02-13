@@ -2,23 +2,6 @@
 name: holo-rss-reader
 description: RSS/Atom 阅读器，支持从 GitHub Gist OPML 导入订阅源，获取文章列表。
 homepage: https://github.com/helebest/holo-rss-reader
-metadata:
-  {
-    "openclaw":
-      {
-        "emoji": "📰",
-        "requires": { "bins": ["python3"], "python": ["feedparser", "requests"] },
-        "install":
-          [
-            {
-              "id": "pip",
-              "kind": "pip",
-              "package": "feedparser requests",
-              "label": "Install dependencies (pip)",
-            },
-          ],
-      },
-  }
 ---
 
 # Holo RSS Reader
@@ -27,39 +10,27 @@ RSS/Atom 阅读器，支持从 GitHub Gist OPML 导入订阅源，获取文章�
 
 ## 前置条件
 
-1. Python 依赖：`feedparser`, `requests`
+1. uv 已安装
 2. 网络访问：能够访问 GitHub API 和 RSS 订阅源
-
-## 安装
-
-```bash
-uv pip install feedparser requests
-```
 
 ## 使用方法
 
 ### 列出订阅源
 
-列出 Gist OPML 中的所有 RSS 订阅源：
-
 ```bash
-bash {baseDir}/scripts/rss.sh list "<gist-url>"
+bash {baseDir}/scripts/rss.sh list [gist-url]
 ```
 
 ### 读取文章
 
-从单个 RSS 源读取文章：
-
 ```bash
-bash {baseDir}/scripts/rss.sh read "<feed-url>" <limit>
+bash {baseDir}/scripts/rss.sh read <feed-url> [limit]
 ```
 
 ### 导入并获取
 
-从 Gist 导入订阅源并获取所有文章：
-
 ```bash
-bash {baseDir}/scripts/rss.sh import "<gist-url>" <limit-per-feed>
+bash {baseDir}/scripts/rss.sh import [gist-url] [limit]
 ```
 
 ## 默认 Gist
@@ -72,14 +43,8 @@ bash {baseDir}/scripts/rss.sh import "<gist-url>" <limit-per-feed>
 # 列出默认 Gist 的订阅源
 bash {baseDir}/scripts/rss.sh list
 
-# 列出自定义 Gist
-bash {baseDir}/scripts/rss.sh list "https://gist.github.com/username/gist-id"
-
 # 读取单个源（获取5条）
 bash {baseDir}/scripts/rss.sh read "https://simonwillison.net/atom/everything/" 5
-
-# 导入并获取（每个源获取2条）
-bash {baseDir}/scripts/rss.sh import "" 2
 ```
 
 ## 输出格式
