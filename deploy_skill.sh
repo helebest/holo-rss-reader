@@ -9,17 +9,8 @@ set -e
 # Get the directory where this script is located (project root)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Global venv path - detect from environment or common locations
-if [ -n "$OPENCLAW_HOME" ]; then
-    GLOBAL_VENV="$OPENCLAW_HOME/.venv"
-elif [ -d "$HOME/.openclaw/.venv" ]; then
-    GLOBAL_VENV="$HOME/.openclaw/.venv"
-elif [ -d "/mnt/usb/holobot/.openclaw/.venv" ]; then
-    GLOBAL_VENV="/mnt/usb/holobot/.openclaw/.venv"
-else
-    echo "Error: Could not find global venv"
-    exit 1
-fi
+# Global venv path - use $HOME
+GLOBAL_VENV="$HOME/.openclaw/.venv"
 
 # Check arguments
 if [ $# -lt 1 ]; then
