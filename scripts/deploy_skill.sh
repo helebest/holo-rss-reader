@@ -13,7 +13,6 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 # Check arguments
 if [ $# -lt 1 ]; then
     echo "Usage: $0 <target-path>"
-    echo "Example: $0 /mnt/usb/holobot/.openclaw/skills/holo-rss-reader"
     exit 1
 fi
 
@@ -35,6 +34,7 @@ DEPLOY_ITEMS=(
     "holo_rss_reader"
     "main.py"
     "README.md"
+    "SKILL.md"
     "pyproject.toml"
 )
 
