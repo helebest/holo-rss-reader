@@ -9,6 +9,9 @@ set -e
 # Get the directory where this script is located (project root)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Global venv path
+GLOBAL_VENV="/mnt/usb/holobot/.openclaw/.venv"
+
 # Check arguments
 if [ $# -lt 1 ]; then
     echo "Usage: $0 <target-path>"
@@ -25,14 +28,32 @@ fi
 
 echo "Deploying Holo RSS Reader to: $TARGET_PATH"
 
+# Read dependencies from pyproject.toml
+echo "Reading dependencies from pyproject.toml..."
+DEPS=$(python3 -c "
+import tomllib
+with open('$SCRIPT_DIR/pyproject.toml', 'rb') as f:
+    data = tomllib.load(f)
+    deps = data.get('project', {}).get('dependencies', [])
+    print(' '.join(deps))
+")
+
+if [ -z "$DEPS" ]; then
+    echo "No dependencies found, skipping installation"
+else
+    echo "Dependencies: $DEPS"
+    # Install to global venv
+    echo "Installing dependencies to global venv..."
+    uv pip install --python "$GLOBAL_VENV/bin/python" $DEPS
+fi
+
 # Create target directory
 mkdir -p "$TARGET_PATH"
 
-# Files and directories to copy (independent of project)
+# Files and directories to copy
 DEPLOY_ITEMS=(
     "SKILL.md"
     "scripts"
-    "pyproject.toml"
 )
 
 # Copy each item
@@ -46,21 +67,8 @@ for item in "${DEPLOY_ITEMS[@]}"; do
     fi
 done
 
-# Remove deploy script, cache and unnecessary files
-rm -f "$TARGET_PATH/scripts/deploy_skill.sh" 2>/dev/null || true
-rm -f "$TARGET_PATH/scripts/__init__.py" 2>/dev/null || true
-rm -rf "$TARGET_PATH"/*/__pycache__ 2>/dev/null || true
-rm -f "$TARGET_PATH/uv.lock" 2>/dev/null || true
-
-# Install dependencies
-echo "Installing dependencies..."
-cd "$TARGET_PATH"
-uv sync
-
-# Remove pyproject.toml after installation (not needed at runtime)
-rm -f "$TARGET_PATH/pyproject.toml"
-rm -f "$TARGET_PATH/uv.lock"
-rm -rf "$TARGET_PATH"/*.egg-info
+# Remove cache
+rm -rf "$TARGET_PATH"/**/__pycache__ 2>/dev/null || true
 
 echo ""
 echo "✅ Deployment complete!"

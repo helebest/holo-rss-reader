@@ -6,8 +6,8 @@
 # 获取脚本所在目录（也是项目根目录）
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# 使用系统 Python（依赖已全局安装）
-PYTHON_CMD="python3"
+# 使用 uv run 执行（依赖已安装到全局 venv）
+PYTHON_CMD="uv run python"
 
 # 默认 Gist URL
 DEFAULT_GIST="https://gist.github.com/emschwartz/e6d2bf860ccc367fe37ff953ba6de66b"
