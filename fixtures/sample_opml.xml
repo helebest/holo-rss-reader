@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>Test Blog Feeds</title>
+  </head>
+  <body>
+    <outline text="Blogs" title="Blogs">
+      <outline type="rss" text="Example Blog" title="Example Blog" xmlUrl="https://example.com/feed.xml" htmlUrl="https://example.com"/>
+      <outline type="rss" text="Tech Blog" title="Tech Blog" xmlUrl="https://tech.example.com/rss" htmlUrl="https://tech.example.com"/>
+      <outline type="rss" text="News Site" title="News Site" xmlUrl="https://news.example.com/atom" htmlUrl="https://news.example.com"/>
+    </outline>
+  </body>
+</opml>

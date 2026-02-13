@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Test RSS Feed</title>
+    <link>https://example.com</link>
+    <description>A test RSS feed</description>
+    <language>en-us</language>
+    <item>
+      <title>Test Article 1</title>
+      <link>https://example.com/article-1</link>
+      <description>This is the summary of article 1.</description>
+      <pubDate>Thu, 13 Feb 2026 12:00:00 +0000</pubDate>
+      <guid>https://example.com/article-1</guid>
+    </item>
+    <item>
+      <title>Test Article 2</title>
+      <link>https://example.com/article-2</link>
+      <description>This is the summary of article 2.</description>
+      <pubDate>Wed, 12 Feb 2026 12:00:00 +0000</pubDate>
+      <guid>https://example.com/article-2</guid>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,13 @@
+{
+  "url": "https://api.github.com/gists/abc123",
+  "id": "abc123def456",
+  "files": {
+    "subscriptions.opml": {
+      "filename": "subscriptions.opml",
+      "type": "text/x-opml",
+      "language": "XML",
+      "raw_url": "https://gist.githubusercontent.com/user/abc123/raw/xxx/subscriptions.opml",
+      "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<opml version=\"2.0\">\n  <head>\n    <title>Test Feeds</title>\n  </head>\n  <body>\n    <outline text=\"Blogs\" title=\"Blogs\">\n      <outline type=\"rss\" text=\"Blog One\" title=\"Blog One\" xmlUrl=\"https://blog1.com/feed.xml\" htmlUrl=\"https://blog1.com\"/>\n      <outline type=\"rss\" text=\"Blog Two\" title=\"Blog Two\" xmlUrl=\"https://blog2.com/atom\" htmlUrl=\"https://blog2.com\"/>\n    </outline>\n  </body>\n</opml>"
+    }
+  }
+}

@@ -8,3 +8,10 @@ dependencies = [
     "feedparser>=6.0.12",
     "requests>=2.32.5",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+    "responses>=0.25.8",
+]
