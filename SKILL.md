@@ -6,14 +6,13 @@ RSS/Atom 阅读器，支持从 GitHub Gist OPML 导入订阅源，获取文章�
 
 ## 前置条件
 
-1. Python 依赖：`feedparser`, `requests`
+1. Python 依赖已安装：`feedparser`, `requests`
 2. 网络访问：能够访问 GitHub API 和 RSS 订阅源
 
 ## 安装
 
 ```bash
-cd <skill-path>
-uv sync
+uv pip install feedparser requests
 ```
 
 ## 使用方法

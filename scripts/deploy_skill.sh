@@ -35,7 +35,6 @@ DEPLOY_ITEMS=(
     "scripts"
     "main.py"
     "SKILL.md"
-    "pyproject.toml"
 )
 
 # Copy each item
