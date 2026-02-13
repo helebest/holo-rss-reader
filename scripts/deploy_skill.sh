@@ -34,7 +34,6 @@ DEPLOY_ITEMS=(
     "holo_rss_reader"
     "scripts"
     "main.py"
-    "README.md"
     "SKILL.md"
     "pyproject.toml"
 )
