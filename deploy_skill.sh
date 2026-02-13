@@ -32,6 +32,7 @@ mkdir -p "$TARGET_PATH"
 DEPLOY_ITEMS=(
     "SKILL.md"
     "scripts"
+    "pyproject.toml"
 )
 
 # Copy each item
@@ -49,11 +50,12 @@ done
 rm -f "$TARGET_PATH/scripts/deploy_skill.sh" 2>/dev/null || true
 rm -f "$TARGET_PATH/scripts/__init__.py" 2>/dev/null || true
 rm -rf "$TARGET_PATH"/*/__pycache__ 2>/dev/null || true
+rm -f "$TARGET_PATH/uv.lock" 2>/dev/null || true
+
+# Install dependencies
+echo "Installing dependencies..."
+cd "$TARGET_PATH"
+uv sync
 
 echo ""
 echo "✅ Deployment complete!"
-echo ""
-echo "To use the skill:"
-echo "  cd $TARGET_PATH"
-echo "  uv sync"
-echo "  python main.py --help"
