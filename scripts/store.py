@@ -127,7 +127,7 @@ def save_full_article(date_str: str, feed_title: str, article: Dict, content: st
 
 def save_digest(date_str: str, articles_by_feed: Dict[str, Dict]) -> Path:
     """
-    Save daily digest markdown.
+    Save daily digest markdown. Merges with existing digest if present.
 
     articles_by_feed: {
         "feed_title": {
@@ -139,14 +139,29 @@ def save_digest(date_str: str, articles_by_feed: Dict[str, Dict]) -> Path:
     date_dir = get_date_dir(date_str)
     digest_path = date_dir / "digest.md"
 
-    total_articles = sum(len(v["articles"]) for v in articles_by_feed.values())
+    # Load existing digest data to merge
+    existing = load_digest_data(date_str)
+    
+    # Merge: new articles append to existing feed sections
+    for feed_title, feed_data in articles_by_feed.items():
+        if feed_title in existing:
+            # Dedup by link
+            existing_links = {a.get("link") for a in existing[feed_title]["articles"]}
+            for article in feed_data["articles"]:
+                if article.get("link") not in existing_links:
+                    existing[feed_title]["articles"].append(article)
+        else:
+            existing[feed_title] = feed_data
+
+    # Render merged digest
+    total_articles = sum(len(v["articles"]) for v in existing.values())
 
     md = f"# RSS 日报 — {date_str}\n\n"
 
     if total_articles == 0:
         md += "*今日无新文章。*\n"
     else:
-        for feed_title, feed_data in articles_by_feed.items():
+        for feed_title, feed_data in existing.items():
             articles = feed_data["articles"]
             if not articles:
                 continue
@@ -165,19 +180,53 @@ def save_digest(date_str: str, articles_by_feed: Dict[str, Dict]) -> Path:
                     md += f" | 🔗 [{shorten_url(link)}]({link})"
                 md += "\n"
                 if summary:
-                    # Indent summary as blockquote, truncate to 200 chars
                     short = summary[:200] + ("..." if len(summary) > 200 else "")
                     md += f"   > {short}\n"
                 md += "\n"
 
         md += "---\n"
-        feed_count = sum(1 for v in articles_by_feed.values() if v["articles"])
+        feed_count = sum(1 for v in existing.values() if v["articles"])
         md += f"*共抓取 {feed_count} 个源，{total_articles} 篇新文章*\n"
 
     with open(digest_path, "w", encoding="utf-8") as f:
         f.write(md)
 
+    # Also save structured data for merging
+    _save_digest_data(date_str, existing)
+
     return digest_path
+
+
+def _save_digest_data(date_str: str, articles_by_feed: Dict[str, Dict]):
+    """Save structured digest data as JSON for future merging."""
+    date_dir = get_date_dir(date_str)
+    data_path = date_dir / "digest.json"
+    
+    # Convert to serializable format
+    data = {}
+    for feed_title, feed_data in articles_by_feed.items():
+        data[feed_title] = {
+            "feed_url": feed_data.get("feed_url", ""),
+            "articles": feed_data["articles"],
+        }
+    
+    with open(data_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def load_digest_data(date_str: str) -> Dict[str, Dict]:
+    """Load structured digest data from JSON for merging."""
+    date_dir = get_rss_dir() / date_str
+    data_path = date_dir / "digest.json"
+    
+    if data_path.exists():
+        try:
+            with open(data_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, KeyError):
+            pass
+    
+    return {}
 
 
 def read_digest(date_str: Optional[str] = None) -> Optional[str]:
