@@ -38,7 +38,8 @@ case "$CMD" in
     fetch)
         GIST_URL="${1:-$DEFAULT_GIST}"
         LIMIT="${2:-10}"
-        $PYTHON_CMD "$SCRIPT_DIR/main.py" fetch --gist "$GIST_URL" --limit "$LIMIT"
+        WORKERS="${3:-5}"
+        $PYTHON_CMD "$SCRIPT_DIR/main.py" fetch --gist "$GIST_URL" --limit "$LIMIT" --workers "$WORKERS"
         ;;
     today)
         $PYTHON_CMD "$SCRIPT_DIR/main.py" today
@@ -73,7 +74,7 @@ case "$CMD" in
         echo "  list [gist-url]              列出订阅源"
         echo "  read <feed-url> [limit]      读取文章"
         echo "  import [gist-url] [limit]    导入并显示文章"
-        echo "  fetch [gist-url] [limit]     抓取新文章，保存日报到本地"
+        echo "  fetch [gist-url] [limit] [workers]  抓取新文章，保存日报（默认5并发）"
         echo "  today                        查看今日日报"
         echo "  history <YYYY-MM-DD>         查看指定日期日报"
         echo "  full <article-url> [date]    抓取并保存全文"

@@ -9,6 +9,7 @@ import gist
 import fetcher
 import parser
 import store
+import feeds as feeds_mod
 
 
 DEFAULT_GIST_URL = "https://gist.github.com/emschwartz/e6d2bf860ccc367fe37ff953ba6de66b"
@@ -98,65 +99,96 @@ def cmd_list_feeds(gist_url: str):
         print()
 
 
-def cmd_fetch(gist_url: str, limit: int = 10):
+def cmd_fetch(gist_url: str, limit: int = 10, workers: int = 5):
     """Fetch new articles from all feeds and save daily digest.
     
-    Saves state and digest incrementally to avoid data loss if interrupted.
+    Uses concurrent fetching for speed. Saves state incrementally.
     """
-    print(f"📥 Fetching new articles...")
-    print(f"   Source: {gist_url}")
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    import threading
+
+    print(f"📥 Fetching new articles (workers={workers})...")
+    print(f"   Sources: Gist OPML + local feeds.json")
     print()
 
-    feeds = gist.import_gist_opml(gist_url)
-    if not feeds:
-        print("❌ No feeds found in Gist")
+    all_feeds = feeds_mod.collect_all_feeds(gist_url)
+    if not all_feeds:
+        print("❌ No feeds found")
         return
 
+    print(f"   Found {len(all_feeds)} feeds total")
+    print()
+
     state = store.load_state()
+    state_lock = threading.Lock()
     today = datetime.now().strftime("%Y-%m-%d")
     articles_by_feed = {}
+    results_lock = threading.Lock()
     total_new = 0
     total_skipped = 0
-    save_counter = 0
 
-    for feed_info in feeds:
+    def process_feed(feed_info):
+        """Fetch and process a single feed. Returns (title, new_count, skip_count)."""
         feed_title = feed_info["title"]
         feed_url = feed_info["url"]
-        print(f"  📡 {feed_title}...", end=" ", flush=True)
 
         try:
             feed = fetcher.fetch_feed(feed_url)
             articles = parser.parse_articles(feed.entries, limit=limit)
 
-            seen = store.get_seen_urls(state, feed_url)
+            with state_lock:
+                seen = store.get_seen_urls(state, feed_url)
+
             new_articles = []
             for a in articles:
                 if a["link"] and a["link"] not in seen:
                     new_articles.append(a)
 
             if new_articles:
-                articles_by_feed[feed_title] = {
-                    "feed_url": feed_url,
-                    "articles": new_articles,
-                }
-                new_urls = [a["link"] for a in new_articles if a["link"]]
-                store.mark_seen(state, feed_url, new_urls)
-                total_new += len(new_articles)
-                print(f"✅ {len(new_articles)} 篇新文章")
+                with results_lock:
+                    articles_by_feed[feed_title] = {
+                        "feed_url": feed_url,
+                        "articles": new_articles,
+                    }
+                with state_lock:
+                    new_urls = [a["link"] for a in new_articles if a["link"]]
+                    store.mark_seen(state, feed_url, new_urls)
+
+                return (feed_title, len(new_articles), 0, None)
             else:
-                skipped = len(articles)
-                total_skipped += skipped
-                print(f"⏭️  无新文章 ({skipped} 篇已读)")
+                return (feed_title, 0, len(articles), None)
 
         except Exception as e:
-            print(f"❌ {e}")
+            return (feed_title, 0, 0, str(e))
 
-        # Incremental save: every 10 feeds, persist state and digest
-        save_counter += 1
-        if save_counter % 10 == 0:
-            store.save_state(state)
-            if articles_by_feed:
-                store.save_digest(today, articles_by_feed)
+    completed = 0
+    save_interval = max(10, len(all_feeds) // 5)  # save ~5 times during run
+
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        future_to_feed = {
+            executor.submit(process_feed, fi): fi for fi in all_feeds
+        }
+
+        for future in as_completed(future_to_feed):
+            title, new_count, skip_count, error = future.result()
+            completed += 1
+
+            if error:
+                print(f"  📡 {title}... ❌ {error}")
+            elif new_count > 0:
+                total_new += new_count
+                print(f"  📡 {title}... ✅ {new_count} 篇新文章")
+            else:
+                total_skipped += skip_count
+                print(f"  📡 {title}... ⏭️  无新文章 ({skip_count} 篇已读)")
+
+            # Incremental save
+            if completed % save_interval == 0:
+                with state_lock:
+                    store.save_state(state)
+                with results_lock:
+                    if articles_by_feed:
+                        store.save_digest(today, articles_by_feed)
 
     # Final save
     store.save_state(state)
@@ -279,6 +311,7 @@ def main():
     fetch_parser = subparsers.add_parser("fetch", help="Fetch new articles and save daily digest")
     fetch_parser.add_argument("--gist", "-g", default=DEFAULT_GIST_URL, help="Gist URL")
     fetch_parser.add_argument("--limit", "-l", type=int, default=10, help="Max articles per feed")
+    fetch_parser.add_argument("--workers", "-w", type=int, default=5, help="Concurrent workers (default: 5)")
 
     # Show today's digest
     subparsers.add_parser("today", help="Show today's digest")
@@ -301,7 +334,7 @@ def main():
     elif args.command == "list":
         cmd_list_feeds(args.gist)
     elif args.command == "fetch":
-        cmd_fetch(args.gist, args.limit)
+        cmd_fetch(args.gist, args.limit, args.workers)
     elif args.command == "today":
         cmd_today()
     elif args.command == "history":
