@@ -26,7 +26,7 @@ uv run pytest --cov --cov-report=html
 
 ```bash
 # 部署到 OpenClaw skills 目录
-./deploy_skill.sh <target-path>
+./openclaw_deploy_skill.sh <target-path>
 
 # 示例
 ./openclaw_deploy_skill.sh $HOME/.openclaw/skills/holo-rss-reader
