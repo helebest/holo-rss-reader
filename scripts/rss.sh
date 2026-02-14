@@ -3,10 +3,10 @@
 # Holo RSS Reader - Bash wrapper
 # 用法: bash rss.sh <command> [args...]
 
-# 获取脚本所在目录（也是项目根目录）
+# 获取脚本所在目录
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# 使用全局 venv 执行（依赖由 openclaw_deploy_skill.sh 安装）
+# 使用全局 venv（依赖由 openclaw_deploy_skill.sh 安装）
 PYTHON_CMD="$HOME/.openclaw/.venv/bin/python3"
 
 # 默认 Gist URL
@@ -35,17 +35,51 @@ case "$CMD" in
         LIMIT="${2:-3}"
         $PYTHON_CMD "$SCRIPT_DIR/main.py" import --gist "$GIST_URL" --limit "$LIMIT"
         ;;
+    fetch)
+        GIST_URL="${1:-$DEFAULT_GIST}"
+        LIMIT="${2:-10}"
+        $PYTHON_CMD "$SCRIPT_DIR/main.py" fetch --gist "$GIST_URL" --limit "$LIMIT"
+        ;;
+    today)
+        $PYTHON_CMD "$SCRIPT_DIR/main.py" today
+        ;;
+    history)
+        DATE="$1"
+        if [ -z "$DATE" ]; then
+            echo "用法: bash rss.sh history <YYYY-MM-DD>"
+            exit 1
+        fi
+        $PYTHON_CMD "$SCRIPT_DIR/main.py" history "$DATE"
+        ;;
+    full)
+        ARTICLE_URL="$1"
+        DATE="$2"
+        if [ -z "$ARTICLE_URL" ]; then
+            echo "用法: bash rss.sh full <article-url> [YYYY-MM-DD]"
+            exit 1
+        fi
+        if [ -n "$DATE" ]; then
+            $PYTHON_CMD "$SCRIPT_DIR/main.py" full "$ARTICLE_URL" --date "$DATE"
+        else
+            $PYTHON_CMD "$SCRIPT_DIR/main.py" full "$ARTICLE_URL"
+        fi
+        ;;
     *)
         echo "Holo RSS Reader"
         echo ""
         echo "用法: bash rss.sh <command> [args...]"
         echo ""
         echo "命令:"
-        echo "  list [gist-url]           列出订阅源"
-        echo "  read <feed-url> [limit]   读取文章"
-        echo "  import [gist-url] [limit] 导入并获取文章"
+        echo "  list [gist-url]              列出订阅源"
+        echo "  read <feed-url> [limit]      读取文章"
+        echo "  import [gist-url] [limit]    导入并显示文章"
+        echo "  fetch [gist-url] [limit]     抓取新文章，保存日报到本地"
+        echo "  today                        查看今日日报"
+        echo "  history <YYYY-MM-DD>         查看指定日期日报"
+        echo "  full <article-url> [date]    抓取并保存全文"
         echo ""
         echo "默认 Gist: $DEFAULT_GIST"
+        echo "存储位置: /mnt/usb/data/rss/"
         exit 1
         ;;
 esac

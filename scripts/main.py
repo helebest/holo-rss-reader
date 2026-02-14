@@ -3,11 +3,12 @@ Holo RSS Reader CLI
 """
 import argparse
 import sys
-from pathlib import Path
+from datetime import datetime
 
 import gist
 import fetcher
 import parser
+import store
 
 
 DEFAULT_GIST_URL = "https://gist.github.com/emschwartz/e6d2bf860ccc367fe37ff953ba6de66b"
@@ -97,6 +98,162 @@ def cmd_list_feeds(gist_url: str):
         print()
 
 
+def cmd_fetch(gist_url: str, limit: int = 10):
+    """Fetch new articles from all feeds and save daily digest.
+    
+    Saves state and digest incrementally to avoid data loss if interrupted.
+    """
+    print(f"📥 Fetching new articles...")
+    print(f"   Source: {gist_url}")
+    print()
+
+    feeds = gist.import_gist_opml(gist_url)
+    if not feeds:
+        print("❌ No feeds found in Gist")
+        return
+
+    state = store.load_state()
+    today = datetime.now().strftime("%Y-%m-%d")
+    articles_by_feed = {}
+    total_new = 0
+    total_skipped = 0
+    save_counter = 0
+
+    for feed_info in feeds:
+        feed_title = feed_info["title"]
+        feed_url = feed_info["url"]
+        print(f"  📡 {feed_title}...", end=" ", flush=True)
+
+        try:
+            feed = fetcher.fetch_feed(feed_url)
+            articles = parser.parse_articles(feed.entries, limit=limit)
+
+            seen = store.get_seen_urls(state, feed_url)
+            new_articles = []
+            for a in articles:
+                if a["link"] and a["link"] not in seen:
+                    new_articles.append(a)
+
+            if new_articles:
+                articles_by_feed[feed_title] = {
+                    "feed_url": feed_url,
+                    "articles": new_articles,
+                }
+                new_urls = [a["link"] for a in new_articles if a["link"]]
+                store.mark_seen(state, feed_url, new_urls)
+                total_new += len(new_articles)
+                print(f"✅ {len(new_articles)} 篇新文章")
+            else:
+                skipped = len(articles)
+                total_skipped += skipped
+                print(f"⏭️  无新文章 ({skipped} 篇已读)")
+
+        except Exception as e:
+            print(f"❌ {e}")
+
+        # Incremental save: every 10 feeds, persist state and digest
+        save_counter += 1
+        if save_counter % 10 == 0:
+            store.save_state(state)
+            if articles_by_feed:
+                store.save_digest(today, articles_by_feed)
+
+    # Final save
+    store.save_state(state)
+
+    if articles_by_feed:
+        digest_path = store.save_digest(today, articles_by_feed)
+        print()
+        print(f"✅ 日报已保存: {digest_path}")
+        print(f"   新文章: {total_new} 篇 | 跳过: {total_skipped} 篇")
+    else:
+        print()
+        print(f"ℹ️  今日无新文章 (跳过 {total_skipped} 篇已读)")
+
+
+def cmd_today():
+    """Show today's digest."""
+    content = store.read_digest()
+    if content:
+        print(content)
+    else:
+        today = datetime.now().strftime("%Y-%m-%d")
+        print(f"ℹ️  今日 ({today}) 还没有日报，运行 fetch 命令先抓取。")
+
+
+def cmd_history(date_str: str):
+    """Show digest for a specific date."""
+    content = store.read_digest(date_str)
+    if content:
+        print(content)
+    else:
+        print(f"ℹ️  没有找到 {date_str} 的日报。")
+
+
+def cmd_full(article_url: str, date_str: str = None):
+    """Fetch and save full article content."""
+    import requests
+    try:
+        from bs4 import BeautifulSoup
+        has_bs4 = True
+    except ImportError:
+        has_bs4 = False
+
+    if not date_str:
+        date_str = datetime.now().strftime("%Y-%m-%d")
+
+    # Try to find article info from state/digest
+    feed_title = "unknown"
+    article_title = store.slugify(article_url)
+
+    # Check if already cached - scan articles dir
+    article_dir = store.get_article_dir(date_str)
+    for f in article_dir.iterdir():
+        if f.is_file() and article_url in f.read_text(encoding="utf-8", errors="ignore")[:500]:
+            print(f"✅ 全文已缓存: {f}")
+            return
+
+    print(f"📄 抓取全文: {article_url}")
+
+    try:
+        resp = requests.get(article_url, timeout=15, headers={
+            "User-Agent": "Mozilla/5.0 (compatible; HoloRSSReader/1.0)"
+        })
+        resp.raise_for_status()
+
+        if has_bs4:
+            soup = BeautifulSoup(resp.text, "lxml")
+            # Extract title
+            title_tag = soup.find("title")
+            if title_tag:
+                article_title = title_tag.get_text(strip=True)
+            # Try to find article/main content
+            main = soup.find("article") or soup.find("main") or soup.find("body")
+            if main:
+                # Remove script/style/nav
+                for tag in main.find_all(["script", "style", "nav", "header", "footer", "aside"]):
+                    tag.decompose()
+                content = main.get_text(separator="\n\n", strip=True)
+            else:
+                content = soup.get_text(separator="\n\n", strip=True)
+        else:
+            # Fallback: basic tag stripping
+            import re
+            content = re.sub(r'<[^>]+>', '', resp.text)
+            content = re.sub(r'\s+', '\n', content).strip()
+
+        article_info = {
+            "title": article_title,
+            "link": article_url,
+            "published": date_str,
+        }
+        path = store.save_full_article(date_str, feed_title, article_info, content)
+        print(f"✅ 全文已保存: {path}")
+
+    except Exception as e:
+        print(f"❌ 抓取失败: {e}")
+
+
 def main():
     parser_cli = argparse.ArgumentParser(
         description="Holo RSS Reader - CLI for reading RSS/Atom feeds"
@@ -104,7 +261,7 @@ def main():
     
     subparsers = parser_cli.add_subparsers(dest="command", help="Commands")
     
-    # Import Gist
+    # Import Gist (legacy)
     import_parser = subparsers.add_parser("import", help="Import feeds from Gist and fetch articles")
     import_parser.add_argument("--gist", "-g", default=DEFAULT_GIST_URL, help="Gist URL")
     import_parser.add_argument("--limit", "-l", type=int, default=3, help="Articles per feed")
@@ -117,7 +274,24 @@ def main():
     # List feeds
     list_parser = subparsers.add_parser("list", help="List feeds from Gist")
     list_parser.add_argument("--gist", "-g", default=DEFAULT_GIST_URL, help="Gist URL")
-    
+
+    # Fetch new articles and save digest
+    fetch_parser = subparsers.add_parser("fetch", help="Fetch new articles and save daily digest")
+    fetch_parser.add_argument("--gist", "-g", default=DEFAULT_GIST_URL, help="Gist URL")
+    fetch_parser.add_argument("--limit", "-l", type=int, default=10, help="Max articles per feed")
+
+    # Show today's digest
+    subparsers.add_parser("today", help="Show today's digest")
+
+    # Show digest for a date
+    history_parser = subparsers.add_parser("history", help="Show digest for a specific date")
+    history_parser.add_argument("date", help="Date in YYYY-MM-DD format")
+
+    # Fetch full article
+    full_parser = subparsers.add_parser("full", help="Fetch and save full article content")
+    full_parser.add_argument("url", help="Article URL")
+    full_parser.add_argument("--date", "-d", default=None, help="Date folder (default: today)")
+
     args = parser_cli.parse_args()
     
     if args.command == "import":
@@ -126,9 +300,16 @@ def main():
         cmd_read_feed(args.url, args.limit)
     elif args.command == "list":
         cmd_list_feeds(args.gist)
+    elif args.command == "fetch":
+        cmd_fetch(args.gist, args.limit)
+    elif args.command == "today":
+        cmd_today()
+    elif args.command == "history":
+        cmd_history(args.date)
+    elif args.command == "full":
+        cmd_full(args.url, args.date)
     else:
-        # Default: import from default Gist
-        cmd_import_gist(DEFAULT_GIST_URL, limit=3)
+        parser_cli.print_help()
 
 
 if __name__ == "__main__":
