@@ -12,7 +12,7 @@ from typing import Dict, List, Optional, Any
 
 
 # Default storage root
-DEFAULT_RSS_DIR = "/mnt/usb/data/rss"
+DEFAULT_RSS_DIR = os.path.expanduser("~/data/rss")
 
 
 def get_rss_dir() -> Path:

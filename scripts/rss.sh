@@ -9,6 +9,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # 使用全局 venv（依赖由 openclaw_deploy_skill.sh 安装）
 PYTHON_CMD="$HOME/.openclaw/.venv/bin/python3"
 
+# RSS 数据存储目录（可通过环境变量 RSS_DATA_DIR 覆盖）
+export RSS_DATA_DIR="${RSS_DATA_DIR:-$HOME/data/rss}"
+
 # 默认 Gist URL
 DEFAULT_GIST="https://gist.github.com/emschwartz/e6d2bf860ccc367fe37ff953ba6de66b"
 
@@ -80,7 +83,7 @@ case "$CMD" in
         echo "  full <article-url> [date]    抓取并保存全文"
         echo ""
         echo "默认 Gist: $DEFAULT_GIST"
-        echo "存储位置: /mnt/usb/data/rss/"
+        echo "存储位置: $RSS_DATA_DIR"
         exit 1
         ;;
 esac

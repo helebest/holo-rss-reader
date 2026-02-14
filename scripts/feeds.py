@@ -11,7 +11,7 @@ import gist
 
 
 # Local feeds config location (next to state.json)
-DEFAULT_RSS_DIR = "/mnt/usb/data/rss"
+DEFAULT_RSS_DIR = os.path.expanduser("~/data/rss")
 
 
 def get_feeds_config_path() -> Path:
