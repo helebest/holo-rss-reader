@@ -29,7 +29,7 @@ uv run pytest --cov --cov-report=html
 ./deploy_skill.sh <target-path>
 
 # 示例
-./deploy_skill.sh /mnt/usb/holobot/.openclaw/skills/holo-rss-reader
+./openclaw_deploy_skill.sh $HOME/.openclaw/skills/holo-rss-reader
 ```
 
 部署后的目录结构：
