@@ -180,7 +180,7 @@ def save_digest(date_str: str, articles_by_feed: Dict[str, Dict]) -> Path:
                     md += f" | 🔗 [{shorten_url(link)}]({link})"
                 md += "\n"
                 if summary:
-                    short = summary[:200] + ("..." if len(summary) > 200 else "")
+                    short = summary[:400] + ("..." if len(summary) > 400 else "")
                     md += f"   > {short}\n"
                 md += "\n"
 

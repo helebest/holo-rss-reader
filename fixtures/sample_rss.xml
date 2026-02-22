@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Test RSS Feed</title>
     <link>https://example.com</link>
@@ -18,6 +18,26 @@
       <description>This is the summary of article 2.</description>
       <pubDate>Wed, 12 Feb 2026 12:00:00 +0000</pubDate>
       <guid>https://example.com/article-2</guid>
+    </item>
+    <item>
+      <title>Short Summary Article</title>
+      <link>https://example.com/short-summary</link>
+      <description>Too short.</description>
+      <content:encoded><![CDATA[<p>This article has a very short summary but the full content field contains much more useful information. It discusses important topics in software engineering including testing strategies, code review best practices, and deployment automation.</p>]]></content:encoded>
+      <pubDate>Tue, 11 Feb 2026 12:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>HTML Heavy Article</title>
+      <link>https://example.com/html-heavy</link>
+      <description><![CDATA[<div class="post"><h2>Introduction</h2><p>This is a very long article with lots of HTML markup. It covers many topics in great detail. The first paragraph sets the stage for what follows.</p><p>The second paragraph continues with more information. It provides additional context and background. This helps readers understand the full picture.</p><p>The third paragraph goes even deeper. It explores nuances and edge cases. Many interesting points are raised here. The discussion is thorough and comprehensive. Additional sentences pad this out to be quite long indeed, exceeding our target length of four hundred characters by a comfortable margin so we can test truncation behavior properly.</p></div>]]></description>
+      <pubDate>Mon, 10 Feb 2026 12:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Empty Summary Article</title>
+      <link>https://example.com/empty-summary</link>
+      <description></description>
+      <content:encoded><![CDATA[<p>The summary was empty but content is available here. This should be used as the fallback source for generating the article summary.</p>]]></content:encoded>
+      <pubDate>Sun, 09 Feb 2026 12:00:00 +0000</pubDate>
     </item>
   </channel>
 </rss>
