@@ -4,6 +4,7 @@ Article parsing and formatting functionality.
 from typing import List, Dict, Any
 import hashlib
 import re
+import html
 
 
 def strip_html(text: str) -> str:
@@ -12,6 +13,7 @@ def strip_html(text: str) -> str:
         return ""
     clean = re.sub(r"<[^>]+>", "", text)
     clean = re.sub(r"\s+", " ", clean).strip()
+    clean = html.unescape(clean)
     return clean
 
 
