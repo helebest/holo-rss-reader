@@ -28,11 +28,12 @@ class TestFetchFeed:
             status=200
         )
         
-        result = fetcher.fetch_feed("https://example.com/feed.xml")
+        result, error = fetcher.fetch_feed("https://example.com/feed.xml")
         
+        assert error is None
         assert result is not None
         assert result.feed.title == "Test RSS Feed"
-        assert len(result.entries) == 2
+        assert len(result.entries) == 5  # Fixture has 5 entries
     
     @responses.activate
     def test_fetch_feed_not_found(self):
@@ -44,11 +45,12 @@ class TestFetchFeed:
             status=404
         )
         
-        result = fetcher.fetch_feed("https://example.com/notfound.xml")
+        result, error = fetcher.fetch_feed("https://example.com/notfound.xml")
         
-        # feedparser returns empty feed on 404 (not an error)
+        # 404 raises HTTPError which is caught and returns error
         assert result is not None
         assert len(result.entries) == 0
+        assert error is not None  # Error info is returned
     
     @responses.activate
     def test_fetch_feed_timeout(self):
@@ -59,10 +61,11 @@ class TestFetchFeed:
             body=Exception("Connection timeout")
         )
         
-        result = fetcher.fetch_feed("https://example.com/timeout.xml")
+        result, error = fetcher.fetch_feed("https://example.com/timeout.xml")
         
         # Should handle error gracefully
         assert result is not None
+        assert error is not None  # Error info is returned
 
 
 class TestFetchMultipleFeeds:
@@ -92,11 +95,14 @@ class TestFetchMultipleFeeds:
             "https://example.com/feed2.xml"
         ]
         
+        # Note: fetch_multiple_feeds returns list of (feed, error) tuples now
         results = fetcher.fetch_multiple_feeds(urls)
         
         assert len(results) == 2
-        assert results[0].feed.title == "Test RSS Feed"
-        assert results[1].feed.title == "Test RSS Feed"
+        # Unwrap results
+        feeds = [r[0] for r in results]
+        assert feeds[0].feed.title == "Test RSS Feed"
+        assert feeds[1].feed.title == "Test RSS Feed"
 
 
 class TestGetFeedInfo:

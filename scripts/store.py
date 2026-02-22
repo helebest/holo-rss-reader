@@ -30,16 +30,30 @@ def load_state() -> Dict:
     """Load state.json, return empty state if not exists."""
     path = get_state_path()
     if path.exists():
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, IOError) as e:
+            # Backup corrupt file and return empty state
+            backup_path = path.with_suffix('.json.corrupt')
+            path.rename(backup_path)
+            return {"feeds": {}}
     return {"feeds": {}}
 
 
 def save_state(state: Dict):
-    """Save state.json."""
+    """Save state.json atomically using temp file + replace."""
     path = get_state_path()
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(state, f, ensure_ascii=False, indent=2)
+    tmp_path = path.with_suffix('.json.tmp')
+    try:
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            json.dump(state, f, ensure_ascii=False, indent=2)
+        tmp_path.replace(path)  # Atomic on POSIX
+    except Exception:
+        # Clean up temp file on error
+        if tmp_path.exists():
+            tmp_path.unlink()
+        raise
 
 
 def get_seen_urls(state: Dict, feed_url: str) -> set:
@@ -49,17 +63,23 @@ def get_seen_urls(state: Dict, feed_url: str) -> set:
 
 
 def mark_seen(state: Dict, feed_url: str, article_urls: List[str]):
-    """Mark article URLs as seen for a feed."""
+    """Mark article URLs as seen for a feed. Preserves order of URLs."""
     if "feeds" not in state:
         state["feeds"] = {}
     if feed_url not in state["feeds"]:
         state["feeds"][feed_url] = {"seen_urls": [], "last_fetch": None}
 
-    seen = set(state["feeds"][feed_url].get("seen_urls", []))
-    seen.update(article_urls)
+    # Use ordered list instead of set to preserve order
+    seen_list = state["feeds"][feed_url].get("seen_urls", [])
+    seen_set = set(seen_list)  # For fast lookup
+    
+    # Add new URLs while preserving order
+    for url in article_urls:
+        if url not in seen_set:
+            seen_list.append(url)
+            seen_set.add(url)
 
-    # Keep max 500 URLs per feed to avoid unbounded growth
-    seen_list = list(seen)
+    # Keep max 500 URLs per feed (keep most recent)
     if len(seen_list) > 500:
         seen_list = seen_list[-500:]
 

@@ -68,7 +68,9 @@ def parse_article(entry: Any) -> Dict[str, Any]:
         article_id = hashlib.md5(title.encode()).hexdigest()
 
     raw_summary = entry.get("summary") or entry.get("description") or ""
-    raw_content = entry.get("content", [{"value": ""}])[0].get("value", "")
+    # Safe extraction - handle empty content list
+    content_list = entry.get("content") or []
+    raw_content = content_list[0].get("value", "") if content_list else ""
 
     return {
         "id": article_id,

@@ -38,7 +38,10 @@ def cmd_import_gist(gist_url: str, limit: int = 10):
         print(f"--- {feed_info['title']} ---")
         
         try:
-            feed = fetcher.fetch_feed(feed_info['url'])
+            feed, error = fetcher.fetch_feed(feed_info['url'])
+            if error:
+                print(f"  ❌ Error: {error}")
+                continue
             articles = parser.parse_articles(feed.entries, limit=limit)
             
             if articles:
@@ -61,7 +64,11 @@ def cmd_read_feed(url: str, limit: int = 10):
     print(f"📰 Fetching: {url}")
     print()
     
-    feed = fetcher.fetch_feed(url)
+    feed, error = fetcher.fetch_feed(url)
+    
+    if error:
+        print(f"❌ Error fetching feed: {error}")
+        return
     
     if not feed.entries:
         print("❌ No articles found")
@@ -133,7 +140,9 @@ def cmd_fetch(gist_url: str, limit: int = 10, workers: int = 5):
         feed_url = feed_info["url"]
 
         try:
-            feed = fetcher.fetch_feed(feed_url)
+            feed, error = fetcher.fetch_feed(feed_url)
+            if error:
+                return (feed_title, 0, 0, error)
             articles = parser.parse_articles(feed.entries, limit=limit)
 
             with state_lock:

@@ -2,12 +2,20 @@
 RSS/Atom feed fetching functionality.
 """
 import feedparser
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
-def fetch_feed(url: str, timeout: int = 10):
+class FeedFetchError(Exception):
+    """Exception raised when feed fetch fails."""
+    def __init__(self, url: str, reason: str):
+        self.url = url
+        self.reason = reason
+        super().__init__(f"Failed to fetch {url}: {reason}")
+
+
+def fetch_feed(url: str, timeout: int = 10) -> Tuple[Any, Optional[str]]:
     """
     Fetch and parse an RSS/Atom feed.
     
@@ -16,21 +24,20 @@ def fetch_feed(url: str, timeout: int = 10):
         timeout: Request timeout in seconds
         
     Returns:
-        FeedParseResult object
+        Tuple of (FeedParseResult, error_message)
+        error_message is None on success, string on failure
     """
     try:
         response = requests.get(url, timeout=timeout)
         response.raise_for_status()
-        return feedparser.parse(response.text)
-    except requests.RequestException:
-        # Return empty feed on error
-        return feedparser.parse("")
-    except Exception:
-        # Return empty feed on any error
-        return feedparser.parse("")
+        return (feedparser.parse(response.text), None)
+    except requests.RequestException as e:
+        return (feedparser.parse(""), f"Network error: {str(e)}")
+    except Exception as e:
+        return (feedparser.parse(""), f"Error: {str(e)}")
 
 
-def fetch_multiple_feeds(urls: List[str], max_workers: int = 5) -> List[Any]:
+def fetch_multiple_feeds(urls: List[str], max_workers: int = 5) -> List[Tuple[Any, Optional[str]]]:
     """
     Fetch multiple feeds in parallel.
     
@@ -39,7 +46,7 @@ def fetch_multiple_feeds(urls: List[str], max_workers: int = 5) -> List[Any]:
         max_workers: Maximum number of parallel workers
         
     Returns:
-        List of FeedParseResult objects
+        List of (FeedParseResult, error) tuples
     """
     results = []
     
