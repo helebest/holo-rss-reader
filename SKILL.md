@@ -1,55 +1,62 @@
 ---
 name: holo-rss-reader
-description: RSS/Atom 阅读器，支持从 GitHub Gist OPML 导入订阅源，获取文章列表。
+description: RSS/Atom 阅读器，支持 Gist OPML 导入、并发抓取、日报与全文缓存。
 homepage: https://github.com/helebest/holo-rss-reader
 ---
 
 # Holo RSS Reader
 
-RSS/Atom 阅读器，支持从 GitHub Gist OPML 导入订阅源，获取文章列表。
+RSS/Atom 阅读器，支持从 GitHub Gist OPML 导入订阅源并生成日报。
 
 ## 前置条件
 
-1. uv 已安装
-2. 网络访问：能够访问 GitHub API 和 RSS 订阅源
+1. Python 3.11+
+2. 网络可访问 GitHub API 与目标 RSS 源
+3. 建议先运行诊断：
+
+```bash
+bash {baseDir}/scripts/rss.sh doctor
+```
 
 ## 使用方法
 
-### 列出订阅源
-
 ```bash
+# 列出订阅源
 bash {baseDir}/scripts/rss.sh list [gist-url]
-```
 
-### 读取文章
-
-```bash
+# 读取单个源
 bash {baseDir}/scripts/rss.sh read <feed-url> [limit]
-```
 
-### 导入并获取
-
-```bash
+# 导入并读取多个源
 bash {baseDir}/scripts/rss.sh import [gist-url] [limit]
+
+# 并发抓取并生成日报
+bash {baseDir}/scripts/rss.sh fetch [gist-url] [limit] [workers]
+
+# 查看今日日报
+bash {baseDir}/scripts/rss.sh today
+
+# 查看历史日报
+bash {baseDir}/scripts/rss.sh history <YYYY-MM-DD>
+
+# 抓取全文
+bash {baseDir}/scripts/rss.sh full <article-url> [YYYY-MM-DD]
+
+# 环境诊断
+bash {baseDir}/scripts/rss.sh doctor
 ```
 
-## 默认 Gist
+## 配置
 
-项目默认使用 [HN 2025 热门博客](https://gist.github.com/emschwartz/e6d2bf860ccc367fe37ff953ba6de66b)，包含 92+ 个技术博客。
+- 数据目录：`RSS_DATA_DIR`（默认 `$HOME/data/rss`）
+- 配置文件：`RSS_CONFIG`（可选，等价于 `--config`）
+- Python 解释器：`RSS_PYTHON`（可选）
 
-## 示例
+默认 Gist: [HN 2025 热门博客](https://gist.github.com/emschwartz/e6d2bf860ccc367fe37ff953ba6de66b)
 
-```bash
-# 列出默认 Gist 的订阅源
-bash {baseDir}/scripts/rss.sh list
+## 输出
 
-# 读取单个源（获取5条）
-bash {baseDir}/scripts/rss.sh read "https://simonwillison.net/atom/everything/" 5
-```
-
-## 输出格式
-
-- 标题
-- 发布日期
-- 链接
-- 摘要（可选）
+- feed 列表
+- 文章标题 / 日期 / 链接 / 摘要
+- 每日 `digest.md` 与结构化 `digest.json`
+- 全文缓存与 `full_index.json`

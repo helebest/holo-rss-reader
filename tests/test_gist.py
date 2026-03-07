@@ -144,3 +144,17 @@ class TestImportGistOpml:
         assert len(feeds) == 2
         assert feeds[0]["title"] == "Blog One"
         assert feeds[0]["url"] == "https://blog1.com/feed.xml"
+
+def test_parse_opml_rejects_dtd_entity_payload():
+    malicious = """<?xml version='1.0'?>
+<!DOCTYPE opml [
+  <!ENTITY xxe SYSTEM 'file:///etc/passwd'>
+]>
+<opml version='2.0'>
+  <body>
+    <outline text='bad' xmlUrl='&xxe;' />
+  </body>
+</opml>"""
+
+    feeds = gist.parse_opml(malicious)
+    assert feeds == []

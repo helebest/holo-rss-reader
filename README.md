@@ -1,13 +1,16 @@
 # Holo RSS Reader
 
-Simple RSS/Atom feed reader.
+Simple RSS/Atom feed reader for OpenClaw skills, with daily digest, full-article cache, and configurable safety/performance controls.
 
 ## 功能
 
 - 解析 RSS/Atom 订阅源
-- 获取文章列表（标题、日期、链接）
-- 支持 GitHub Gist OPML 导入
-- 支持自定义获取数量
+- 从 GitHub Gist OPML 导入订阅源
+- 并发抓取新文章并生成日报
+- `ETag/Last-Modified` 条件请求，减少重复流量
+- 全文抓取缓存（`full_index.json` 索引）
+- 可配置网络超时、重试、响应体大小和安全模式
+- `doctor` 诊断命令（环境、依赖、网络、存储）
 
 ## 开发
 
@@ -22,38 +25,69 @@ uv run pytest
 uv run pytest --cov --cov-report=html
 ```
 
-## 部署
+## CLI
 
 ```bash
-# 部署到 OpenClaw skills 目录
-./openclaw_deploy_skill.sh <target-path>
-
-# 示例
-./openclaw_deploy_skill.sh $HOME/.openclaw/skills/holo-rss-reader
+python3 scripts/main.py --help
+python3 scripts/main.py --config "$RSS_DATA_DIR/config.json" --help
 ```
 
-部署后的目录结构：
+子命令：
 
-```
-skill-name/
-├── SKILL.md
-└── scripts/
-    ├── rss.sh
-    ├── fetcher.py
-    ├── gist.py
-    ├── parser.py
-    └── main.py
+- `list --gist <url>`: 列出 Gist 中订阅源
+- `read <feed-url> --limit <n>`: 读取单个源
+- `import --gist <url> --limit <n>`: 导入并读取多个源
+- `fetch --gist <url> --limit <n> --workers <n> --retries <n> --connect-timeout <sec> --read-timeout <sec> --max-feed-bytes <bytes>`
+- `today`: 查看今日日报
+- `history <YYYY-MM-DD>`: 查看历史日报
+- `full <article-url> --date <YYYY-MM-DD> --max-article-bytes <bytes>`
+- `doctor`: 运行环境诊断
+
+## 配置
+
+默认配置文件：`$RSS_DATA_DIR/config.json`
+
+```json
+{
+  "network": {
+    "connect_timeout_sec": 5,
+    "read_timeout_sec": 20,
+    "max_feed_bytes": 2097152,
+    "max_article_bytes": 8388608,
+    "retries": 3
+  },
+  "fetch": {
+    "workers": 8
+  },
+  "security": {
+    "mode": "loose",
+    "allowlist": []
+  }
+}
 ```
 
-## 使用
+安全模式：
+
+- `loose`（默认）：仅限制 URL 必须是 `http/https`
+- `restricted`：额外阻止 `localhost`/内网等目标
+- `allowlist`：仅允许白名单域名
+
+## 部署到 OpenClaw Skill
 
 ```bash
-# 列出订阅源
+./openclaw_deploy_skill.sh <absolute-target-path>
+```
+
+部署后常用命令：
+
+```bash
 bash <skill-path>/scripts/rss.sh list
-
-# 读取单个源
-bash <skill-path>/scripts/rss.sh read "<feed-url>" <limit>
-
-# 导入 Gist
-bash <skill-path>/scripts/rss.sh import
+bash <skill-path>/scripts/rss.sh fetch
+bash <skill-path>/scripts/rss.sh doctor
 ```
+
+`rss.sh` 解释器发现顺序：
+
+1. `RSS_PYTHON`
+2. `~/.openclaw/.venv/bin/python3`
+3. `python3`（PATH）
