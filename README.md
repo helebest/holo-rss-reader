@@ -56,10 +56,10 @@ Default config path: `$RSS_DATA_DIR/config.json`
 {
   "network": {
     "connect_timeout_sec": 5,
-    "read_timeout_sec": 20,
+    "read_timeout_sec": 10,
     "max_feed_bytes": 2097152,
     "max_article_bytes": 8388608,
-    "retries": 3
+    "retries": 1
   },
   "fetch": {
     "workers": 8
