@@ -1,7 +1,7 @@
 [project]
 name = "holo-rss-reader"
 version = "0.1.0"
-description = "Add your description here"
+description = "Production-ready RSS/Atom reader for OpenClaw with Gist OPML import, concurrent fetch, daily digest, and full-article caching."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -16,3 +16,7 @@ dev = [
     "pytest-cov>=7.0.0",
     "responses>=0.25.8",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = [".venv", ".uv-cache", ".tmp", "pytest-cache-files-*"]
