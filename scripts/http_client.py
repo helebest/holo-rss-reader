@@ -3,6 +3,7 @@ HTTP client helpers with connection pooling, retries and response size limits.
 """
 from dataclasses import dataclass, field
 import json
+import re
 from typing import Any, Dict, Optional, Tuple
 
 import requests
@@ -50,6 +51,35 @@ def _decode_body(raw_bytes: bytes, encoding: str) -> str:
         return raw_bytes.decode(encoding, errors="replace")
     except LookupError:
         return raw_bytes.decode("utf-8", errors="replace")
+
+
+def _detect_encoding_from_body(raw_bytes: bytes) -> Optional[str]:
+    if raw_bytes.startswith(b"\xef\xbb\xbf"):
+        return "utf-8-sig"
+    if raw_bytes.startswith(b"\xff\xfe\x00\x00"):
+        return "utf-32-le"
+    if raw_bytes.startswith(b"\x00\x00\xfe\xff"):
+        return "utf-32-be"
+    if raw_bytes.startswith(b"\xff\xfe"):
+        return "utf-16-le"
+    if raw_bytes.startswith(b"\xfe\xff"):
+        return "utf-16-be"
+
+    head = raw_bytes[:4096].decode("ascii", errors="ignore")
+
+    xml_match = re.search(r"<\?xml[^>]*encoding=[\"']\s*([^\"']+)", head, re.IGNORECASE)
+    if xml_match:
+        return xml_match.group(1).strip()
+
+    meta_match = re.search(r"<meta[^>]+charset=[\"']?\s*([^\"'\s/>]+)", head, re.IGNORECASE)
+    if meta_match:
+        return meta_match.group(1).strip()
+
+    return None
+
+
+def _resolve_encoding(response: requests.Response, raw_bytes: bytes) -> str:
+    return response.encoding or _detect_encoding_from_body(raw_bytes) or "utf-8"
 
 
 def fetch_text(
@@ -105,7 +135,7 @@ def fetch_text(
             chunks.append(chunk)
 
         body = b"".join(chunks)
-        encoding = response.encoding or response.apparent_encoding or "utf-8"
+        encoding = _resolve_encoding(response, body)
         response.close()
         return HTTPResult(
             ok=True,

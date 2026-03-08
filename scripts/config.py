@@ -13,10 +13,10 @@ DEFAULT_RSS_DIR = os.path.expanduser("~/data/rss")
 DEFAULT_CONFIG: Dict[str, Any] = {
     "network": {
         "connect_timeout_sec": 5,
-        "read_timeout_sec": 20,
+        "read_timeout_sec": 10,
         "max_feed_bytes": 2 * 1024 * 1024,
         "max_article_bytes": 8 * 1024 * 1024,
-        "retries": 3,
+        "retries": 1,
     },
     "fetch": {
         "workers": 8,

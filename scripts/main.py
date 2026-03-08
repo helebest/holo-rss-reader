@@ -402,10 +402,18 @@ def cmd_fetch(
             _print_actionable_error("Storage error", str(exc))
             return exit_codes.STORAGE_ERROR
 
+        success_feeds = len(all_feeds) - total_errors
+        success_ratio = (success_feeds / len(all_feeds) * 100) if all_feeds else 0.0
+        error_ratio = (total_errors / len(all_feeds) * 100) if all_feeds else 0.0
+
         print(
             f"📊 metrics: feeds_total={len(all_feeds)} new={total_new} "
             f"not_modified={total_304} skipped={total_skipped} errors={total_errors} "
             f"elapsed_sec={elapsed:.2f}"
+        )
+        print(
+            f"📈 feed_success={success_feeds}/{len(all_feeds)} ({success_ratio:.1f}%) | "
+            f"feed_error={total_errors}/{len(all_feeds)} ({error_ratio:.1f}%)"
         )
 
         if total_errors > 0:
