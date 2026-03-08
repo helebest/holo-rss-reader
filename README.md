@@ -1,4 +1,4 @@
-﻿# Holo RSS Reader
+# Holo RSS Reader
 
 [![CI](https://github.com/helebest/holo-rss-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/helebest/holo-rss-reader/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/helebest/holo-rss-reader)](https://github.com/helebest/holo-rss-reader/releases)

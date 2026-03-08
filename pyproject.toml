@@ -1,4 +1,4 @@
-﻿[project]
+[project]
 name = "holo-rss-reader"
 version = "0.1.0"
 description = "Production-ready RSS/Atom reader for OpenClaw with Gist OPML import, concurrent fetch, daily digest, and full-article caching."
