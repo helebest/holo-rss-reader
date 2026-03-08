@@ -1,29 +1,32 @@
-# Holo RSS Reader
+﻿# Holo RSS Reader
 
-[![CI](https://github.com/helebest/holo-rss-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/helebest/holo-rss-reader/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/helebest/holo-rss-reader)](https://github.com/helebest/holo-rss-reader/releases) [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/) [![License](https://img.shields.io/github/license/helebest/holo-rss-reader)](https://github.com/helebest/holo-rss-reader)
+[![CI](https://github.com/helebest/holo-rss-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/helebest/holo-rss-reader/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/helebest/holo-rss-reader)](https://github.com/helebest/holo-rss-reader/releases)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/github/license/helebest/holo-rss-reader)](https://github.com/helebest/holo-rss-reader)
 
-Simple RSS/Atom feed reader for OpenClaw skills, with daily digest, full-article cache, and configurable safety/performance controls.
+Production-ready RSS/Atom feed reader for OpenClaw skills, with Gist OPML import, concurrent fetching, daily digest generation, and full-article caching.
 
-## 功能
+## Features
 
-- 解析 RSS/Atom 订阅�?
-- �?GitHub Gist OPML 导入订阅�?
-- 并发抓取新文章并生成日报
-- `ETag/Last-Modified` 条件请求，减少重复流�?
-- 全文抓取缓存（`full_index.json` 索引�?
-- 可配置网络超时、重试、响应体大小和安全模�?
-- `doctor` 诊断命令（环境、依赖、网络、存储）
+- Parse RSS/Atom subscriptions.
+- Import subscriptions from GitHub Gist OPML.
+- Fetch new articles concurrently and generate a daily digest.
+- Use conditional requests (`ETag` / `Last-Modified`) to reduce repeated traffic.
+- Cache full-article content with `full_index.json` indexing.
+- Configure network timeout, retries, payload size, and security mode.
+- Run `doctor` to diagnose runtime, dependency, network, and storage issues.
 
-## 开�?
+## Development
 
 ```bash
-# 安装依赖
+# Install dependencies
 uv sync
 
-# 运行测试
+# Run tests
 uv run pytest
 
-# 运行覆盖�?
+# Run coverage
 uv run pytest --cov --cov-report=html
 ```
 
@@ -34,20 +37,20 @@ python3 scripts/main.py --help
 python3 scripts/main.py --config "$RSS_DATA_DIR/config.json" --help
 ```
 
-子命令：
+Commands:
 
-- `list --gist <url>`: 列出 Gist 中订阅源
-- `read <feed-url> --limit <n>`: 读取单个�?
-- `import --gist <url> --limit <n>`: 导入并读取多个源
+- `list --gist <url>`: List feeds in a Gist.
+- `read <feed-url> --limit <n>`: Read one feed.
+- `import --gist <url> --limit <n>`: Import and read multiple feeds.
 - `fetch --gist <url> --limit <n> --workers <n> --retries <n> --connect-timeout <sec> --read-timeout <sec> --max-feed-bytes <bytes>`
-- `today`: 查看今日日报
-- `history <YYYY-MM-DD>`: 查看历史日报
+- `today`: Show today's digest.
+- `history <YYYY-MM-DD>`: Show historical digest.
 - `full <article-url> --date <YYYY-MM-DD> --max-article-bytes <bytes>`
-- `doctor`: 运行环境诊断
+- `doctor`: Run environment diagnostics.
 
-## 配置
+## Configuration
 
-默认配置文件：`$RSS_DATA_DIR/config.json`
+Default config path: `$RSS_DATA_DIR/config.json`
 
 ```json
 {
@@ -68,19 +71,19 @@ python3 scripts/main.py --config "$RSS_DATA_DIR/config.json" --help
 }
 ```
 
-安全模式�?
+Security modes:
 
-- `loose`（默认）：仅限制 URL 必须�?`http/https`
-- `restricted`：额外阻�?`localhost`/内网等目�?
-- `allowlist`：仅允许白名单域�?
+- `loose` (default): only require URL scheme to be `http/https`.
+- `restricted`: additionally block localhost and internal/private network targets.
+- `allowlist`: only allow hostnames in `allowlist`.
 
-## 部署�?OpenClaw Skill
+## Deploy to OpenClaw Skill
 
 ```bash
 ./openclaw_deploy_skill.sh <absolute-target-path>
 ```
 
-部署后常用命令：
+After deployment:
 
 ```bash
 bash <skill-path>/scripts/rss.sh list
@@ -88,9 +91,8 @@ bash <skill-path>/scripts/rss.sh fetch
 bash <skill-path>/scripts/rss.sh doctor
 ```
 
-`rss.sh` 解释器发现顺序：
+`rss.sh` interpreter discovery order:
 
 1. `RSS_PYTHON`
 2. `~/.openclaw/.venv/bin/python3`
-3. `python3`（PATH�?
-
+3. `python3` (from `PATH`)
