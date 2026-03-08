@@ -3,7 +3,7 @@
 [![CI](https://github.com/helebest/holo-rss-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/helebest/holo-rss-reader/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/helebest/holo-rss-reader)](https://github.com/helebest/holo-rss-reader/releases)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/github/license/helebest/holo-rss-reader)](https://github.com/helebest/holo-rss-reader)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/helebest/holo-rss-reader/blob/master/LICENSE)
 
 Production-ready RSS/Atom feed reader for OpenClaw skills, with Gist OPML import, concurrent fetching, daily digest generation, and full-article caching.
 
