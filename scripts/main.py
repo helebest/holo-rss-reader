@@ -416,8 +416,6 @@ def cmd_fetch(
             f"feed_error={total_errors}/{len(all_feeds)} ({error_ratio:.1f}%)"
         )
 
-        if total_errors > 0:
-            return exit_codes.NETWORK_ERROR
         return exit_codes.OK
     finally:
         if own_session:

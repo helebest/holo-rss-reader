@@ -14,7 +14,7 @@ import main
 
 
 @pytest.mark.usefixtures("tmp_path")
-def test_cmd_fetch_prints_success_error_ratio(monkeypatch, capsys):
+def test_cmd_fetch_prints_success_error_ratio_and_returns_ok(monkeypatch, capsys):
     cfg = {
         "network": {
             "connect_timeout_sec": 5,
@@ -76,5 +76,5 @@ def test_cmd_fetch_prints_success_error_ratio(monkeypatch, capsys):
 
     out = capsys.readouterr().out
 
-    assert code == exit_codes.NETWORK_ERROR
+    assert code == exit_codes.OK
     assert "feed_success=1/2 (50.0%) | feed_error=1/2 (50.0%)" in out
