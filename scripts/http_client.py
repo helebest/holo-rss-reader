@@ -3,6 +3,7 @@ HTTP client helpers with connection pooling, retries and response size limits.
 """
 from dataclasses import dataclass, field
 import json
+import os
 import re
 from typing import Any, Dict, Optional, Tuple
 
@@ -36,9 +37,10 @@ def build_session(retries: int = 3, pool_connections: int = 20, pool_maxsize: in
         read=max(0, int(retries)),
         connect=max(0, int(retries)),
         backoff_factor=0.3,
-        status_forcelist=[429, 500, 502, 503, 504],
+        status_forcelist=[500, 502, 503, 504],
         allowed_methods=["GET", "HEAD"],
         raise_on_status=False,
+        respect_retry_after_header=False,
     )
     adapter = HTTPAdapter(max_retries=retry, pool_connections=pool_connections, pool_maxsize=pool_maxsize)
     session.mount("http://", adapter)
@@ -82,6 +84,67 @@ def _resolve_encoding(response: requests.Response, raw_bytes: bytes) -> str:
     return response.encoding or _detect_encoding_from_body(raw_bytes) or "utf-8"
 
 
+def _env_has_proxy() -> bool:
+    for key in ("http_proxy", "https_proxy", "HTTP_PROXY", "HTTPS_PROXY", "all_proxy", "ALL_PROXY"):
+        if os.environ.get(key):
+            return True
+    return False
+
+
+def _should_try_direct_on_429(sess: requests.Session) -> bool:
+    return bool(getattr(sess, "trust_env", False) and _env_has_proxy())
+
+
+def _build_error_result(status_code: int, headers: Dict[str, str]) -> HTTPResult:
+    return HTTPResult(
+        ok=False,
+        status_code=status_code,
+        headers=headers,
+        error=f"HTTP {status_code}",
+        error_kind="network",
+    )
+
+
+def _read_response(response: requests.Response, max_bytes: int) -> HTTPResult:
+    status_code = response.status_code
+    response_headers = {k.lower(): v for k, v in response.headers.items()}
+
+    if status_code == 304:
+        response.close()
+        return HTTPResult(ok=True, status_code=304, headers=response_headers)
+
+    if status_code >= 400:
+        response.close()
+        return _build_error_result(status_code, response_headers)
+
+    chunks = []
+    total = 0
+    for chunk in response.iter_content(chunk_size=8192):
+        if not chunk:
+            continue
+        total += len(chunk)
+        if total > max_bytes:
+            response.close()
+            return HTTPResult(
+                ok=False,
+                status_code=status_code,
+                headers=response_headers,
+                error=f"Response exceeds max size ({max_bytes} bytes)",
+                error_kind="network",
+            )
+        chunks.append(chunk)
+
+    body = b"".join(chunks)
+    encoding = _resolve_encoding(response, body)
+    response.close()
+    return HTTPResult(
+        ok=True,
+        status_code=status_code,
+        text=_decode_body(body, encoding),
+        headers=response_headers,
+    )
+
+
 def fetch_text(
     url: str,
     *,
@@ -99,50 +162,20 @@ def fetch_text(
 
     try:
         response = sess.get(url, stream=True, timeout=timeout, headers=req_headers)
-        status_code = response.status_code
-        response_headers = {k.lower(): v for k, v in response.headers.items()}
 
-        if status_code == 304:
+        if response.status_code == 429 and _should_try_direct_on_429(sess):
             response.close()
-            return HTTPResult(ok=True, status_code=304, headers=response_headers)
+            direct_sess = build_session(retries=0)
+            direct_sess.trust_env = False
+            try:
+                direct_response = direct_sess.get(url, stream=True, timeout=timeout, headers=req_headers)
+                return _read_response(direct_response, max_bytes)
+            except requests.RequestException:
+                return _build_error_result(429, {})
+            finally:
+                direct_sess.close()
 
-        if status_code >= 400:
-            err = f"HTTP {status_code}"
-            response.close()
-            return HTTPResult(
-                ok=False,
-                status_code=status_code,
-                headers=response_headers,
-                error=err,
-                error_kind="network",
-            )
-
-        chunks = []
-        total = 0
-        for chunk in response.iter_content(chunk_size=8192):
-            if not chunk:
-                continue
-            total += len(chunk)
-            if total > max_bytes:
-                response.close()
-                return HTTPResult(
-                    ok=False,
-                    status_code=status_code,
-                    headers=response_headers,
-                    error=f"Response exceeds max size ({max_bytes} bytes)",
-                    error_kind="network",
-                )
-            chunks.append(chunk)
-
-        body = b"".join(chunks)
-        encoding = _resolve_encoding(response, body)
-        response.close()
-        return HTTPResult(
-            ok=True,
-            status_code=status_code,
-            text=_decode_body(body, encoding),
-            headers=response_headers,
-        )
+        return _read_response(response, max_bytes)
     except requests.RequestException as exc:
         return HTTPResult(ok=False, error=f"Network error: {exc}", error_kind="network")
     finally:
