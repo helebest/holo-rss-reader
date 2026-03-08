@@ -43,7 +43,10 @@ def _ensure_feed_state(state: Dict, feed_url: str) -> Dict:
     if "feeds" not in state:
         state["feeds"] = {}
     if feed_url not in state["feeds"]:
-        state["feeds"][feed_url] = dict(DEFAULT_FEED_STATE)
+        state["feeds"][feed_url] = {
+            key: (list(value) if isinstance(value, list) else value)
+            for key, value in DEFAULT_FEED_STATE.items()
+        }
 
     feed_state = state["feeds"][feed_url]
     for key, default_value in DEFAULT_FEED_STATE.items():
