@@ -8,3 +8,8 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Local temp/work dirs
+.tmp/
+pytest-cache-files-*/
+.pytest_cache/

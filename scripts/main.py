@@ -556,7 +556,7 @@ def cmd_doctor(cfg: Dict, session) -> int:
         gist_api_url,
         session=session,
         timeout=http_client.make_timeout(net["connect_timeout_sec"], net["read_timeout_sec"]),
-        max_bytes=256 * 1024,
+        max_bytes=net["max_feed_bytes"],
         headers={"Accept": "application/vnd.github+json"},
     )
     checks.append((
