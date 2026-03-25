@@ -105,6 +105,9 @@ case "$CMD" in
     doctor)
         run_main doctor
         ;;
+    wechat)
+        run_main wechat "$@"
+        ;;
     *)
         echo "Holo RSS Reader"
         echo ""
@@ -119,6 +122,9 @@ case "$CMD" in
         echo "  history <YYYY-MM-DD>           查看指定日期日报"
         echo "  full <article-url> [date]      抓取并保存全文"
         echo "  doctor                         诊断运行环境和网络连通"
+        echo "  wechat add <id> [--title T]    添加微信公众号订阅"
+        echo "  wechat list                    列出微信订阅源"
+        echo "  wechat remove <id|url>         移除微信订阅源"
         echo ""
         echo "默认 Gist: $DEFAULT_GIST"
         echo "存储位置: $RSS_DATA_DIR"

@@ -1,50 +1,64 @@
 ---
 name: holo-rss-reader
-description: RSS/Atom 阅读器技能。从 GitHub Gist OPML 导入订阅源，并发抓取文章，生成日报摘要，缓存全文。当用户要求阅读 RSS/Atom 订阅、获取新闻摘要、管理订阅源、查看每日文章汇总、抓取全文、或诊断 RSS 运行环境时使用此技能。
+description: RSS/Atom feed reader and daily digest generator with WeChat public account support. Use this skill when the user wants to subscribe to RSS/Atom feeds, read blog articles, fetch news summaries, generate daily digests, manage feed subscriptions, cache full article text, subscribe to WeChat Official Accounts (微信公众号), or diagnose RSS runtime issues. Also triggers for: "今天有什么新闻", "帮我抓取文章", "check my feeds", "fetch latest articles", "订阅博客", "每日摘要".
 homepage: https://github.com/helebest/holo-rss-reader
 ---
 
 # Holo RSS Reader
 
-RSS/Atom 阅读器，支持从 GitHub Gist OPML 导入订阅源并生成日报。
+RSS/Atom 阅读器，支持从 GitHub Gist OPML 导入订阅源、并发抓取文章、生成日报摘要、缓存全文，以及通过 wechat2rss 桥接订阅微信公众号。
 
-## 前置条件
+## 快速开始
 
-1. Python 3.11+
-2. 网络可访问 GitHub API 与目标 RSS 源
-3. 建议先运行诊断：
+首次使用建议按以下流程操作：
 
 ```bash
+# 1. 诊断运行环境（检查 Python、依赖、网络）
 bash {baseDir}/scripts/rss.sh doctor
-```
 
-## 使用方法
+# 2. 并发抓取所有订阅源，生成今日日报
+bash {baseDir}/scripts/rss.sh fetch
 
-```bash
-# 列出订阅源
-bash {baseDir}/scripts/rss.sh list [gist-url]
-
-# 读取单个源
-bash {baseDir}/scripts/rss.sh read <feed-url> [limit]
-
-# 导入并读取多个源
-bash {baseDir}/scripts/rss.sh import [gist-url] [limit]
-
-# 并发抓取并生成日报
-bash {baseDir}/scripts/rss.sh fetch [gist-url] [limit] [workers]
-
-# 查看今日日报
+# 3. 查看今日日报
 bash {baseDir}/scripts/rss.sh today
 
-# 查看历史日报
-bash {baseDir}/scripts/rss.sh history <YYYY-MM-DD>
-
-# 抓取全文
-bash {baseDir}/scripts/rss.sh full <article-url> [YYYY-MM-DD]
-
-# 环境诊断
-bash {baseDir}/scripts/rss.sh doctor
+# 4. 对感兴趣的文章抓取全文
+bash {baseDir}/scripts/rss.sh full <article-url>
 ```
+
+## 命令参考
+
+| 命令 | 说明 | 示例 |
+|------|------|------|
+| `list [gist-url]` | 列出订阅源 | `rss.sh list` |
+| `read <feed-url> [limit]` | 读取单个源的文章 | `rss.sh read https://example.com/rss 5` |
+| `import [gist-url] [limit]` | 导入 Gist OPML 并预览 | `rss.sh import` |
+| `fetch [gist-url] [limit] [workers]` | 并发抓取新文章，生成日报 | `rss.sh fetch` |
+| `today` | 查看今日日报 | `rss.sh today` |
+| `history <YYYY-MM-DD>` | 查看指定日期日报 | `rss.sh history 2026-03-24` |
+| `full <article-url> [date]` | 抓取并缓存全文 | `rss.sh full https://example.com/post` |
+| `doctor` | 诊断运行环境和网络连通 | `rss.sh doctor` |
+| `wechat add <id> [--title T]` | 添加微信公众号订阅 | `rss.sh wechat add abc123 --title 新智元` |
+| `wechat list` | 列出微信订阅源 | `rss.sh wechat list` |
+| `wechat remove <id\|url>` | 移除微信订阅源 | `rss.sh wechat remove abc123` |
+
+所有命令前缀为 `bash {baseDir}/scripts/rss.sh`。
+
+## 微信公众号订阅
+
+通过 [wechat2rss](https://wechat2rss.xlab.app) 桥接服务订阅微信公众号。详见 [references/wechat.md](references/wechat.md)。
+
+```bash
+# 添加（account-id 从 wechat2rss.xlab.app/list/all/ 查询）
+bash {baseDir}/scripts/rss.sh wechat add <account-id> --title <名称>
+```
+
+已验证的公众号：
+- 新智元: `ede30346413ea70dbef5d485ea5cbb95cca446e7`
+- 机器之心: `51e92aad2728acdd1fda7314be32b16639353001`
+- 量子位: `7131b577c61365cb47e81000738c10d872685908`
+
+**注意**：wechat2rss 收录的公众号有限（约 500 个，以安全/技术类为主）。若目标公众号未被收录，添加时会明确提示，此时无法通过本工具订阅。微信文章全文会自动从 feed 的 `content:encoded` 提取，无需单独抓取 `mp.weixin.qq.com` URL。
 
 ## 配置
 

@@ -133,6 +133,7 @@ def test_cmd_full_paths(monkeypatch, capsys):
     assert main.cmd_full("https://example.com/a", "2026-03-08", CFG, object()) == exit_codes.OK
 
     monkeypatch.setattr(main.store, "lookup_full_article", lambda *_a, **_k: None)
+    monkeypatch.setattr(main.store, "load_digest_data", lambda *_a, **_k: {})
     monkeypatch.setattr(
         main.http_client,
         "fetch_text",
@@ -203,3 +204,55 @@ def test_main_dispatches_and_handles_config_error(monkeypatch):
     monkeypatch.setattr(main.config_mod, "load_config", lambda _path=None: (_ for _ in ()).throw(OSError("bad cfg")))
     monkeypatch.setattr(sys, "argv", ["rss", "today"])
     assert main.main() == exit_codes.STORAGE_ERROR
+
+
+def test_cmd_full_fallback_to_feed_content(monkeypatch, capsys):
+    """When HTTP fetch fails, cmd_full should fall back to digest.json content."""
+    monkeypatch.setattr(main.url_validator, "validate_url", lambda *_a, **_k: None)
+    monkeypatch.setattr(main.store, "lookup_full_article", lambda *_a, **_k: None)
+    monkeypatch.setattr(
+        main.http_client,
+        "fetch_text",
+        lambda *_a, **_k: http_client.HTTPResult(ok=False, error="anti-scraping", error_kind="network"),
+    )
+
+    digest_data = {
+        "TestFeed": {
+            "feed_url": "https://example.com/feed.xml",
+            "articles": [
+                {
+                    "title": "Test Article",
+                    "link": "https://mp.weixin.qq.com/s/abc123",
+                    "content": "<p>Full article content here</p>",
+                    "summary": "Short summary",
+                }
+            ],
+        }
+    }
+    monkeypatch.setattr(main.store, "load_digest_data", lambda *_a, **_k: digest_data)
+    monkeypatch.setattr(main.store, "save_full_article", lambda *_a, **_k: Path("/tmp/full.md"))
+
+    code = main.cmd_full("https://mp.weixin.qq.com/s/abc123", "2026-03-25", CFG, object())
+    out = capsys.readouterr().out
+
+    assert code == exit_codes.OK
+    assert "feed 缓存的全文" in out
+    assert "全文已保存" in out
+
+
+def test_cmd_full_fallback_no_content_in_digest(monkeypatch, capsys):
+    """When fallback finds no content in digest, it should return the original error."""
+    monkeypatch.setattr(main.url_validator, "validate_url", lambda *_a, **_k: None)
+    monkeypatch.setattr(main.store, "lookup_full_article", lambda *_a, **_k: None)
+    monkeypatch.setattr(
+        main.http_client,
+        "fetch_text",
+        lambda *_a, **_k: http_client.HTTPResult(ok=False, error="timeout", error_kind="network"),
+    )
+    # Digest exists but article URL doesn't match
+    monkeypatch.setattr(main.store, "load_digest_data", lambda *_a, **_k: {
+        "SomeFeed": {"articles": [{"link": "https://other.com/x", "content": "stuff"}]}
+    })
+
+    code = main.cmd_full("https://mp.weixin.qq.com/s/notfound", "2026-03-25", CFG, object())
+    assert code == exit_codes.NETWORK_ERROR

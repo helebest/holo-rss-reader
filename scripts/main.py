@@ -20,6 +20,7 @@ import http_client
 import parser as article_parser
 import store
 import url_validator
+import wechat
 
 
 DEFAULT_GIST_URL = "https://gist.github.com/emschwartz/e6d2bf860ccc367fe37ff953ba6de66b"
@@ -268,9 +269,12 @@ def cmd_fetch(
         def process_feed(feed_info):
             feed_title = feed_info["title"]
             feed_url = feed_info["url"]
+            custom_headers = feed_info.get("headers") or {}
 
             with state_lock:
                 conditional_headers = store.get_feed_conditional_headers(state, feed_url)
+
+            merged_headers = {**custom_headers, **conditional_headers}
 
             feed, error, meta = fetcher.fetch_feed_detailed(
                 feed_url,
@@ -279,7 +283,7 @@ def cmd_fetch(
                 read_timeout_sec=net_opts["read_timeout_sec"],
                 max_bytes=net_opts["max_bytes"],
                 retries=net_opts["retries"],
-                conditional_headers=conditional_headers,
+                conditional_headers=merged_headers,
                 **_security_options(cfg),
             )
 
@@ -445,6 +449,23 @@ def cmd_history(date_str: str) -> int:
     return exit_codes.OK
 
 
+def _lookup_feed_content(article_url: str, date_str: str):
+    """Look up cached article content from digest.json.
+
+    Returns (content, feed_title, article_title) or (None, None, None).
+    """
+    digest_data = store.load_digest_data(date_str)
+    for feed_title, feed_data in digest_data.items():
+        for article in feed_data.get("articles", []):
+            if article.get("link") == article_url:
+                raw_content = article.get("content", "")
+                if raw_content:
+                    content = article_parser.strip_html(raw_content)
+                    title = article.get("title", store.slugify(article_url))
+                    return content, feed_title, title
+    return None, None, None
+
+
 def cmd_full(
     article_url: str,
     date_str: Optional[str],
@@ -486,31 +507,40 @@ def cmd_full(
         headers={"Accept": "text/html,application/xhtml+xml"},
     )
 
-    if not result.ok:
-        _print_actionable_error("Fetch failed", result.error or "Unknown error")
-        return exit_codes.from_error_kind(result.error_kind or "network")
-
+    content = None
     feed_title = "unknown"
     article_title = store.slugify(article_url)
 
-    if has_bs4:
-        soup = BeautifulSoup(result.text, "lxml")
-        title_tag = soup.find("title")
-        if title_tag:
-            article_title = title_tag.get_text(strip=True)
+    if result.ok:
+        if has_bs4:
+            soup = BeautifulSoup(result.text, "lxml")
+            title_tag = soup.find("title")
+            if title_tag:
+                article_title = title_tag.get_text(strip=True)
 
-        main = soup.find("article") or soup.find("main") or soup.find("body")
-        if main:
-            for tag in main.find_all(["script", "style", "nav", "header", "footer", "aside"]):
-                tag.decompose()
-            content = main.get_text(separator="\n\n", strip=True)
+            main = soup.find("article") or soup.find("main") or soup.find("body")
+            if main:
+                for tag in main.find_all(["script", "style", "nav", "header", "footer", "aside"]):
+                    tag.decompose()
+                content = main.get_text(separator="\n\n", strip=True)
+            else:
+                content = soup.get_text(separator="\n\n", strip=True)
         else:
-            content = soup.get_text(separator="\n\n", strip=True)
-    else:
-        import re
+            import re
 
-        content = re.sub(r"<[^>]+>", "", result.text)
-        content = re.sub(r"\s+", "\n", content).strip()
+            content = re.sub(r"<[^>]+>", "", result.text)
+            content = re.sub(r"\s+", "\n", content).strip()
+    else:
+        # Fallback: look up content:encoded cached in digest.json
+        fallback_content, fallback_feed, fallback_title = _lookup_feed_content(article_url, date_str)
+        if fallback_content:
+            content = fallback_content
+            feed_title = fallback_feed
+            article_title = fallback_title
+            print("   ℹ️  直接抓取失败，使用 feed 缓存的全文")
+        else:
+            _print_actionable_error("Fetch failed", result.error or "Unknown error")
+            return exit_codes.from_error_kind(result.error_kind or "network")
 
     article_info = {
         "title": article_title,
@@ -609,6 +639,94 @@ def cmd_doctor(cfg: Dict, session) -> int:
     return exit_codes.OK
 
 
+def cmd_wechat_add(
+    account_id: str,
+    title: Optional[str],
+    base_url: Optional[str],
+    token: Optional[str],
+    cfg: Dict,
+    session,
+) -> int:
+    """Add a WeChat public account feed via wechat2rss."""
+    feed_url = wechat.build_feed_url(account_id, base_url)
+
+    # Check for duplicates
+    existing = feeds_mod.load_local_feeds()
+    for f in existing:
+        if f.get("url") == feed_url:
+            print(f"ℹ️  已存在: {feed_url}")
+            return exit_codes.OK
+
+    # Verify feed is reachable
+    print(f"🔍 验证 feed: {feed_url}")
+    net_opts = _network_options(cfg)
+    _feed, error, _meta = fetcher.fetch_feed_detailed(
+        feed_url,
+        session=session,
+        connect_timeout_sec=net_opts["connect_timeout_sec"],
+        read_timeout_sec=net_opts["read_timeout_sec"],
+        max_bytes=net_opts["max_bytes"],
+        retries=net_opts["retries"],
+        **_security_options(cfg),
+    )
+
+    if error:
+        if _meta.status_code in (404, 410):
+            _print_actionable_error(
+                "公众号未收录",
+                f"wechat2rss 未收录此公众号 (account-id: {account_id})",
+            )
+            print("   wechat2rss 仅收录约 500 个公众号（以安全/技术类为主）。")
+            print("   请到 https://wechat2rss.xlab.app/list/all/ 确认目标公众号是否在列表中。")
+            print("   若未收录，暂无法通过本工具订阅该公众号。")
+        else:
+            _print_actionable_error("Feed 不可达", error)
+            print("   未保存。请检查网络连接或 account-id 是否正确。")
+        return exit_codes.NETWORK_ERROR
+
+    feed_title = title or account_id
+    entry = wechat.make_feed_entry(account_id, feed_title, base_url, token)
+    existing.append(entry)
+    feeds_mod.save_local_feeds(existing)
+    print(f"✅ 已添加微信源: {feed_title} ({feed_url})")
+    return exit_codes.OK
+
+
+def cmd_wechat_list() -> int:
+    """List WeChat feeds from local feeds.json."""
+    all_feeds = feeds_mod.load_local_feeds()
+    wechat_feeds = wechat.list_wechat_feeds(all_feeds)
+
+    if not wechat_feeds:
+        print("ℹ️  没有微信公众号订阅源。")
+        print("   使用 wechat add <account-id> 添加。")
+        return exit_codes.OK
+
+    print(f"📋 微信公众号订阅源 ({len(wechat_feeds)}):\n")
+    for i, feed in enumerate(wechat_feeds, 1):
+        print(f"{i}. {feed.get('title', 'Untitled')}")
+        print(f"   🔗 {feed.get('url', '')}")
+        if feed.get("account_id"):
+            print(f"   🆔 {feed['account_id']}")
+        print()
+
+    return exit_codes.OK
+
+
+def cmd_wechat_remove(identifier: str) -> int:
+    """Remove a WeChat feed by account-id or URL."""
+    all_feeds = feeds_mod.load_local_feeds()
+    updated, removed = wechat.remove_wechat_feed(all_feeds, identifier)
+
+    if not removed:
+        _print_actionable_error("未找到", f"没有匹配 '{identifier}' 的微信源")
+        return exit_codes.PARAM_ERROR
+
+    feeds_mod.save_local_feeds(updated)
+    print(f"✅ 已移除: {removed.get('title', '')} ({removed.get('url', '')})")
+    return exit_codes.OK
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser_cli = argparse.ArgumentParser(description="Holo RSS Reader - CLI for reading RSS/Atom feeds")
     parser_cli.add_argument(
@@ -650,6 +768,20 @@ def build_parser() -> argparse.ArgumentParser:
     full_parser.add_argument("--max-article-bytes", type=int, default=None, help="Max bytes for full article")
 
     subparsers.add_parser("doctor", help="Run environment and connectivity diagnostics")
+
+    wechat_parser = subparsers.add_parser("wechat", help="Manage WeChat public account feeds")
+    wechat_sub = wechat_parser.add_subparsers(dest="wechat_command", help="WeChat commands")
+
+    wechat_add = wechat_sub.add_parser("add", help="Add a WeChat feed")
+    wechat_add.add_argument("account_id", help="wechat2rss account hash ID")
+    wechat_add.add_argument("--title", "-t", default=None, help="Display name for the feed")
+    wechat_add.add_argument("--base-url", default=None, help="wechat2rss base URL")
+    wechat_add.add_argument("--token", default=None, help="Auth token (Bearer)")
+
+    wechat_sub.add_parser("list", help="List WeChat feeds")
+
+    wechat_rm = wechat_sub.add_parser("remove", help="Remove a WeChat feed")
+    wechat_rm.add_argument("identifier", help="Account ID or feed URL")
 
     return parser_cli
 
@@ -695,6 +827,17 @@ def main() -> int:
             return cmd_full(args.url, args.date, cfg, session, max_article_bytes=args.max_article_bytes)
         if args.command == "doctor":
             return cmd_doctor(cfg, session)
+        if args.command == "wechat":
+            if args.wechat_command == "add":
+                return cmd_wechat_add(
+                    args.account_id, args.title, args.base_url, args.token, cfg, session
+                )
+            if args.wechat_command == "list":
+                return cmd_wechat_list()
+            if args.wechat_command == "remove":
+                return cmd_wechat_remove(args.identifier)
+            parser_cli.parse_args(["wechat", "--help"])
+            return exit_codes.PARAM_ERROR
 
         parser_cli.print_help()
         return exit_codes.PARAM_ERROR
