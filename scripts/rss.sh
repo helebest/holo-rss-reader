@@ -47,7 +47,7 @@ if [[ -n "${RSS_CONFIG:-}" ]]; then
 fi
 
 run_main() {
-    "$PYTHON_CMD" "$SCRIPT_DIR/main.py" "${COMMON_ARGS[@]}" "$@"
+    "$PYTHON_CMD" "$SCRIPT_DIR/main.py" ${COMMON_ARGS[@]+"${COMMON_ARGS[@]}"} "$@"
 }
 
 CMD="${1:-}"
