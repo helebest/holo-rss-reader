@@ -1,7 +1,7 @@
-from pathlib import Path
+﻿from pathlib import Path
 import sys
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import main
 
@@ -54,3 +54,4 @@ def test_main_dispatches_import_read_list_fetch_full_doctor(monkeypatch):
     monkeypatch.setattr(main, "cmd_doctor", lambda cfg, session: 26)
     monkeypatch.setattr(sys, "argv", ["rss", "doctor"])
     assert main.main() == 26 and sessions[-1].closed is True
+

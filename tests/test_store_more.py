@@ -1,8 +1,8 @@
-from pathlib import Path
+﻿from pathlib import Path
 import json
 import sys
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import store
 
@@ -139,3 +139,4 @@ def test_read_digest_missing_and_text_helpers(monkeypatch, tmp_path):
     assert store.clean_summary("") == ""
     assert store.shorten_url("https://www.example.com/path") == "example.com/path"
     assert store.shorten_url("https://example.com/" + "x" * 100).endswith("...")
+

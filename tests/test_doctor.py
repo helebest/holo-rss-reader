@@ -1,11 +1,11 @@
-"""
+﻿"""
 Tests for doctor diagnostics behavior.
 """
 from pathlib import Path
 import sys
 from types import SimpleNamespace
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import exit_codes
 import main

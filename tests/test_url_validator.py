@@ -1,10 +1,10 @@
-"""
+﻿"""
 Tests for URL validation rules.
 """
 from pathlib import Path
 import sys
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import url_validator
 
@@ -55,3 +55,4 @@ def test_validate_url_allowlist_mode_accepts_subdomain():
         allowlist=["trusted.com"],
     )
     assert error is None
+

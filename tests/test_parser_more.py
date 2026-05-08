@@ -1,7 +1,7 @@
-from pathlib import Path
+﻿from pathlib import Path
 import sys
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import parser
 
@@ -24,3 +24,4 @@ def test_parse_article_without_link_or_content_uses_title_hash():
     assert article["title"] == "Hash Me"
     assert article["link"] == ""
     assert len(article["id"]) == 32
+

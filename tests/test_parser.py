@@ -1,4 +1,4 @@
-"""
+﻿"""
 Tests for article parsing functionality.
 """
 import pytest
@@ -6,7 +6,7 @@ import feedparser
 from pathlib import Path
 
 import sys
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import fetcher
 import parser
@@ -189,3 +189,4 @@ class TestExtractSummary:
         # "Empty Summary Article" is entry index 4
         article = parser.parse_article(feed.entries[4])
         assert "fallback" in article["summary"]
+

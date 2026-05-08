@@ -1,8 +1,8 @@
-from pathlib import Path
+﻿from pathlib import Path
 import json
 import sys
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import feeds
 
@@ -70,3 +70,4 @@ def test_collect_all_feeds_dedupes_gist_and_local(monkeypatch, tmp_path):
 def test_collect_all_feeds_returns_wrapper_result(monkeypatch):
     monkeypatch.setattr(feeds, "collect_all_feeds_detailed", lambda gist_url=None: ([{"url": "u"}], None, None))
     assert feeds.collect_all_feeds("https://gist.github.com/x/y") == [{"url": "u"}]
+

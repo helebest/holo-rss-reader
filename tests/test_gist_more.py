@@ -1,7 +1,7 @@
-from pathlib import Path
+﻿from pathlib import Path
 import sys
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import gist
 import http_client
@@ -90,3 +90,4 @@ def test_import_opml_from_url_detailed_paths(monkeypatch):
     assert len(feeds) == 3
     assert kind is None
     assert gist.import_opml_from_url("https://example.com/feeds.opml") == feeds
+

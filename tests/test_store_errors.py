@@ -1,4 +1,4 @@
-"""
+﻿"""
 Tests for store.py - URL order preservation and JSON error handling.
 """
 import pytest
@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 from unittest.mock import patch
 import sys
-sys.path.insert(0, 'scripts')
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 import store
 
 
@@ -86,3 +86,4 @@ class TestStoreJSONDecodeError:
                 with open(state_file) as f:
                     loaded = json.load(f)
                 assert loaded == test_state
+

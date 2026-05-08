@@ -5,11 +5,17 @@ build/
 dist/
 wheels/
 *.egg-info
+.coverage
 
 # Virtual environments
 .venv
+.uv-cache/
 
 # Local temp/work dirs
 .tmp/
 pytest-cache-files-*/
 .pytest_cache/
+.pytest-*/
+
+# Generated plugin copies
+plugins/holo-rss-reader/skills/

@@ -1,8 +1,8 @@
-from pathlib import Path
+﻿from pathlib import Path
 import json
 import sys
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import config
 
@@ -64,3 +64,4 @@ def test_save_config_and_resolve_path(tmp_path):
     saved = json.loads(target.read_text(encoding="utf-8"))
     assert saved["network"]["retries"] == 2
     assert config.resolve_config_path(str(target)) == target
+

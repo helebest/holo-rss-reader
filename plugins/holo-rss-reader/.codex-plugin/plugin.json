@@ -1,0 +1,26 @@
+{
+  "name": "holo-rss-reader",
+  "version": "1.1.0",
+  "description": "RSS/Atom feed reader and daily digest skill with Gist OPML import, full-article caching, and WeChat Official Accounts bridging.",
+  "author": {
+    "name": "holo"
+  },
+  "license": "MIT",
+  "keywords": ["rss", "atom", "opml", "wechat", "daily-digest", "skills"],
+  "homepage": "https://github.com/helebest/holo-rss-reader",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "holo RSS Reader",
+    "shortDescription": "Read RSS feeds and generate daily digests.",
+    "longDescription": "A skill for managing RSS/Atom subscriptions, importing OPML from GitHub Gists, fetching new articles concurrently, generating daily digests, caching full article text, and bridging supported WeChat Official Accounts through wechat2rss.",
+    "developerName": "holo",
+    "category": "Productivity",
+    "capabilities": ["Read", "Automation"],
+    "defaultPrompt": [
+      "Fetch my latest RSS articles.",
+      "Generate today's RSS digest.",
+      "Add this WeChat Official Account feed."
+    ],
+    "brandColor": "#f97316"
+  }
+}

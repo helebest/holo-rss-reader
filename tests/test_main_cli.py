@@ -1,10 +1,10 @@
-"""
+﻿"""
 Tests for CLI parser compatibility and new options.
 """
 from pathlib import Path
 import sys
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import main
 
@@ -54,3 +54,4 @@ def test_build_parser_accepts_full_max_article_bytes():
     args = parser.parse_args(["full", "https://example.com/a", "--max-article-bytes", "99999"])
     assert args.command == "full"
     assert args.max_article_bytes == 99999
+

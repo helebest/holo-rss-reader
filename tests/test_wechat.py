@@ -1,8 +1,8 @@
-"""Tests for wechat.py module."""
+﻿"""Tests for wechat.py module."""
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import wechat
 
@@ -84,3 +84,4 @@ def test_remove_wechat_feed_not_found():
     updated, removed = wechat.remove_wechat_feed(feeds, "nonexistent")
     assert removed is None
     assert len(updated) == 1
+
