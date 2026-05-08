@@ -86,13 +86,18 @@ def test_openclaw_plugin_package_is_clawpack_ready() -> None:
     assert package_json["type"] == "module"
     assert package_json["private"] is False
     assert package_json["files"] == [
+        "index.js",
         "openclaw.plugin.json",
         "skills",
     ]
 
     openclaw = package_json["openclaw"]
+    assert openclaw["extensions"] == ["./index.js"]
     assert openclaw["compat"]["pluginApi"] == ">=2026.3.24-beta.2"
     assert openclaw["build"]["openclawVersion"] == "2026.3.24-beta.2"
+    for extension in openclaw["extensions"]:
+        extension_path = OPENCLAW_PACKAGE_JSON.parent / extension.removeprefix("./")
+        assert extension_path.is_file()
 
 
 def test_plugin_wrapper_and_codex_marketplace_are_valid() -> None:
@@ -164,6 +169,7 @@ def test_build_outputs_are_generated_from_canonical_skills() -> None:
         assert manifest_path in names
         if manifest_path == "openclaw.plugin.json":
             assert "package.json" in names
+            assert "index.js" in names
         for skill_name in SKILL_NAMES:
             assert f"skills/{skill_name}/SKILL.md" in names
         assert not any(name.startswith("src/") for name in names)

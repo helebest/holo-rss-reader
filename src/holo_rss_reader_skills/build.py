@@ -12,6 +12,7 @@ from pathlib import Path
 from .validate import (
     CLAUDE_PLUGIN_MANIFEST,
     CODEX_PLUGIN_MANIFEST,
+    OPENCLAW_EXTENSION_ENTRY,
     OPENCLAW_PLUGIN_MANIFEST,
     OPENCLAW_PACKAGE_JSON,
     PLUGIN_ROOT,
@@ -144,7 +145,7 @@ def build(base_url: str = "", clean: bool = True) -> list[Path]:
         build_plugin_zip(
             "openclaw-holo-rss-reader-plugin",
             OPENCLAW_PLUGIN_MANIFEST,
-            extra_files=[OPENCLAW_PACKAGE_JSON],
+            extra_files=[OPENCLAW_PACKAGE_JSON, OPENCLAW_EXTENSION_ENTRY],
         )
     )
     artifacts.extend(build_well_known(base_url))
