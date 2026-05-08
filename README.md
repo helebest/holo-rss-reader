@@ -123,6 +123,15 @@ uv run holo-rss-sync-plugin
 
 Codex discovers the local plugin through `.agents/plugins/marketplace.json`. Claude Code can load the same wrapper with `claude --plugin-dir ./plugins/holo-rss-reader`. OpenClaw can load the canonical `skills/` directory directly or use the generated OpenClaw plugin archive. Hermes should consume `skills/`, generated skill zips, or the well-known discovery indexes.
 
+For ClawHub package publishing, `plugins/holo-rss-reader/` is also an npm-packable OpenClaw plugin package. Generate the ignored skill copy first, create the ClawPack `.tgz`, then upload that artifact:
+
+```bash
+uv run holo-rss-sync-plugin
+npm pack plugins/holo-rss-reader --json --ignore-scripts --pack-destination .tmp --cache .npm-cache
+clawhub package publish .tmp/holo-rss-reader-<version>.tgz --family bundle-plugin --bundle-format openclaw --host-targets openclaw --source-repo helebest/holo-rss-reader --source-ref master --source-commit <commit> --dry-run
+clawhub package publish .tmp/holo-rss-reader-<version>.tgz --family bundle-plugin --bundle-format openclaw --host-targets openclaw --source-repo helebest/holo-rss-reader --source-ref master --source-commit <commit>
+```
+
 When running from a skill folder:
 
 ```bash

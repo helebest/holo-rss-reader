@@ -13,6 +13,7 @@ from .validate import (
     CLAUDE_PLUGIN_MANIFEST,
     CODEX_PLUGIN_MANIFEST,
     OPENCLAW_PLUGIN_MANIFEST,
+    OPENCLAW_PACKAGE_JSON,
     PLUGIN_ROOT,
     ROOT,
     SKILL_NAMES,
@@ -71,11 +72,13 @@ def build_skill_zips() -> list[Path]:
     return outputs
 
 
-def build_plugin_zip(name: str, manifest: Path) -> Path:
+def build_plugin_zip(name: str, manifest: Path, extra_files: list[Path] | None = None) -> Path:
     output = DIST_DIR / "plugins" / f"{name}.zip"
     output.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive:
         archive.write(manifest, manifest.relative_to(PLUGIN_ROOT).as_posix())
+        for extra_file in extra_files or []:
+            archive.write(extra_file, extra_file.relative_to(PLUGIN_ROOT).as_posix())
         add_tree_to_zip(archive, SKILLS_DIR, Path("skills"))
     return output
 
@@ -137,7 +140,13 @@ def build(base_url: str = "", clean: bool = True) -> list[Path]:
     artifacts.extend(build_skill_zips())
     artifacts.append(build_plugin_zip("claude-holo-rss-reader-plugin", CLAUDE_PLUGIN_MANIFEST))
     artifacts.append(build_plugin_zip("codex-holo-rss-reader-plugin", CODEX_PLUGIN_MANIFEST))
-    artifacts.append(build_plugin_zip("openclaw-holo-rss-reader-plugin", OPENCLAW_PLUGIN_MANIFEST))
+    artifacts.append(
+        build_plugin_zip(
+            "openclaw-holo-rss-reader-plugin",
+            OPENCLAW_PLUGIN_MANIFEST,
+            extra_files=[OPENCLAW_PACKAGE_JSON],
+        )
+    )
     artifacts.extend(build_well_known(base_url))
     artifacts.append(write_checksums([path for path in artifacts if path.is_file()]))
     return artifacts
