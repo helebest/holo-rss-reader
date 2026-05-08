@@ -1,11 +1,11 @@
-from pathlib import Path
+﻿from pathlib import Path
 import builtins
 import sys
 from types import SimpleNamespace
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import exit_codes
 import http_client
@@ -256,3 +256,4 @@ def test_cmd_full_fallback_no_content_in_digest(monkeypatch, capsys):
 
     code = main.cmd_full("https://mp.weixin.qq.com/s/notfound", "2026-03-25", CFG, object())
     assert code == exit_codes.NETWORK_ERROR
+

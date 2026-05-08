@@ -1,4 +1,4 @@
-"""
+﻿"""
 Integration-style scale test for multi-feed fetching.
 """
 from pathlib import Path
@@ -6,7 +6,7 @@ import sys
 
 import responses
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import fetcher
 
@@ -36,3 +36,4 @@ def test_fetch_multiple_feeds_mixed_200_sources():
 
     assert error_count == 20
     assert success_count == 180
+

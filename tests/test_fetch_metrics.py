@@ -1,4 +1,4 @@
-"""
+﻿"""
 Tests for fetch summary metrics.
 """
 from pathlib import Path
@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import exit_codes
 import main
@@ -78,3 +78,4 @@ def test_cmd_fetch_prints_success_error_ratio_and_returns_ok(monkeypatch, capsys
 
     assert code == exit_codes.OK
     assert "feed_success=1/2 (50.0%) | feed_error=1/2 (50.0%)" in out
+

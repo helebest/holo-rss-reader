@@ -36,8 +36,14 @@ jobs:
       - name: Install dependencies
         run: uv sync --dev
 
+      - name: Validate repository
+        run: uv run holo-rss-validate
+
+      - name: Validate plugin sync
+        run: uv run holo-rss-sync-plugin --check
+
       - name: Run tests
-        run: uv run pytest tests
+        run: uv run pytest
 
   release:
     name: Create GitHub Release
@@ -67,22 +73,29 @@ jobs:
 
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
-      - name: Fetch tags
-        run: git fetch --tags --force
-
-      - name: Build source archive and checksum
-        id: build_assets
+      - name: Check out release tag
         shell: bash
         run: |
           TAG="${{ steps.resolve_tag.outputs.tag }}"
+          git fetch --tags --force
           git rev-parse "$TAG" >/dev/null
+          git checkout --detach "$TAG"
 
-          ARCHIVE="holo-rss-reader-${TAG}.tar.gz"
-          git archive --format=tar.gz --output="$ARCHIVE" "$TAG"
-          sha256sum "$ARCHIVE" > "${ARCHIVE}.sha256"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-          echo "archive=$ARCHIVE" >> "$GITHUB_OUTPUT"
-          echo "checksum=${ARCHIVE}.sha256" >> "$GITHUB_OUTPUT"
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      - name: Build skill and plugin artifacts
+        run: uv run holo-rss-build
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
@@ -91,5 +104,6 @@ jobs:
           generate_release_notes: true
           fail_on_unmatched_files: true
           files: |
-            ${{ steps.build_assets.outputs.archive }}
-            ${{ steps.build_assets.outputs.checksum }}
+            dist/skills/*.zip
+            dist/plugins/*.zip
+            dist/checksums.txt

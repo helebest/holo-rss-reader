@@ -1,4 +1,4 @@
-"""
+﻿"""
 Tests for fetcher error handling.
 """
 from pathlib import Path
@@ -7,7 +7,7 @@ import sys
 import pytest
 import responses
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import fetcher
 import http_client
@@ -74,3 +74,4 @@ class TestFetcherErrorHandling:
         assert error is not None
         assert "max size" in error
         assert meta.error_kind == "network"
+

@@ -1,7 +1,7 @@
-from pathlib import Path
+﻿from pathlib import Path
 import sys
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import url_validator
 
@@ -29,3 +29,4 @@ def test_private_helpers_cover_edge_cases():
 def test_validate_url_rejects_missing_or_invalid_host():
     assert "host" in url_validator.validate_url("https:///path")
     assert "host" in url_validator.validate_url("https://")
+

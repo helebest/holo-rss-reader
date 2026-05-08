@@ -1,7 +1,7 @@
 [project]
 name = "holo-rss-reader"
 version = "1.1.0"
-description = "Production-ready RSS/Atom reader for OpenClaw with Gist OPML import, concurrent fetch, daily digest, and full-article caching."
+description = "Production-ready RSS/Atom reader packaged as Agent Skills and local plugins."
 license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.11"
@@ -10,6 +10,18 @@ dependencies = [
     "requests>=2.32.5",
     "defusedxml>=0.7.1",
 ]
+
+[project.scripts]
+holo-rss-build = "holo_rss_reader_skills.build:main"
+holo-rss-sync-plugin = "holo_rss_reader_skills.sync_plugin:main"
+holo-rss-validate = "holo_rss_reader_skills.validate:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/holo_rss_reader_skills"]
 
 [dependency-groups]
 dev = [
@@ -21,3 +33,4 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 norecursedirs = [".venv", ".uv-cache", ".tmp", "pytest-cache-files-*"]
+pythonpath = ["src"]

@@ -16,10 +16,10 @@
 ### 2. 添加订阅
 
 ```bash
-bash scripts/rss.sh wechat add <account-id> --title <名称>
+bash {baseDir}/scripts/rss.sh wechat add <account-id> --title <名称>
 
 # 示例
-bash scripts/rss.sh wechat add ede30346413ea70dbef5d485ea5cbb95cca446e7 --title 新智元
+bash {baseDir}/scripts/rss.sh wechat add ede30346413ea70dbef5d485ea5cbb95cca446e7 --title 新智元
 ```
 
 添加时会自动验证 feed 可达性。
@@ -27,7 +27,7 @@ bash scripts/rss.sh wechat add ede30346413ea70dbef5d485ea5cbb95cca446e7 --title 
 ### 3. 抓取文章
 
 ```bash
-bash scripts/rss.sh fetch
+bash {baseDir}/scripts/rss.sh fetch
 ```
 
 微信源与其他 RSS 源一起并发抓取，文章会出现在日报 `digest.md` 中。
@@ -35,7 +35,7 @@ bash scripts/rss.sh fetch
 ### 4. 获取全文
 
 ```bash
-bash scripts/rss.sh full <mp.weixin.qq.com-article-url>
+bash {baseDir}/scripts/rss.sh full <mp.weixin.qq.com-article-url>
 ```
 
 微信文章 URL 有反爬机制，无法直接 HTTP 抓取。`full` 命令会自动从当天 feed 缓存的 `content:encoded` 中提取全文保存。
@@ -44,10 +44,10 @@ bash scripts/rss.sh full <mp.weixin.qq.com-article-url>
 
 ```bash
 # 列出所有微信源
-bash scripts/rss.sh wechat list
+bash {baseDir}/scripts/rss.sh wechat list
 
 # 移除微信源（按 account-id 或 feed URL）
-bash scripts/rss.sh wechat remove <account-id>
+bash {baseDir}/scripts/rss.sh wechat remove <account-id>
 ```
 
 ## Feed URL 格式

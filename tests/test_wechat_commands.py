@@ -1,4 +1,4 @@
-"""Tests for wechat CLI commands in main.py."""
+﻿"""Tests for wechat CLI commands in main.py."""
 import json
 import sys
 from pathlib import Path
@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import exit_codes
 import main
@@ -174,3 +174,4 @@ def test_cmd_wechat_remove_not_found(monkeypatch, capsys):
     code = main.cmd_wechat_remove("nonexistent")
     assert code == exit_codes.PARAM_ERROR
     assert "未找到" in capsys.readouterr().out
+

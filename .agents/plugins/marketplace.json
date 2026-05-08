@@ -1,0 +1,20 @@
+{
+  "name": "holo-rss-reader",
+  "interface": {
+    "displayName": "holo RSS Reader"
+  },
+  "plugins": [
+    {
+      "name": "holo-rss-reader",
+      "source": {
+        "source": "local",
+        "path": "./plugins/holo-rss-reader"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

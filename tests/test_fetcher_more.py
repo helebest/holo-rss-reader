@@ -1,8 +1,8 @@
-from pathlib import Path
+﻿from pathlib import Path
 import sys
 from types import SimpleNamespace
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import fetcher
 import http_client
@@ -36,3 +36,4 @@ def test_fetch_feed_detailed_bozo_parse_error(monkeypatch):
     assert feed is not None
     assert "Parse error" in error
     assert meta.error_kind == "parse"
+

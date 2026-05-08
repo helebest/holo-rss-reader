@@ -1,4 +1,4 @@
-"""
+﻿"""
 Tests for conditional fetch behavior (ETag/Last-Modified).
 """
 from pathlib import Path
@@ -6,7 +6,7 @@ import sys
 
 import responses
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import fetcher
 
@@ -34,3 +34,4 @@ def test_fetch_feed_returns_not_modified_meta_on_304():
     assert meta.status_code == 304
     assert meta.etag == "abc123"
     assert meta.last_modified == "Sat, 07 Mar 2026 12:00:00 GMT"
+

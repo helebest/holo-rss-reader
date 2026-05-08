@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Holo RSS Reader is a Python RSS/Atom feed reader designed for OpenClaw skill deployment. It fetches feeds concurrently, generates daily digest markdown, caches full articles, and supports importing subscriptions from GitHub Gist OPML files.
+Holo RSS Reader is a Python RSS/Atom feed reader packaged as an Agent Skill and local plugin wrapper. It fetches feeds concurrently, generates daily digest markdown, caches full articles, and supports importing subscriptions from GitHub Gist OPML files.
 
 ## Commands
 
@@ -24,15 +24,20 @@ uv run pytest tests/test_fetcher.py::TestFetchFeed::test_fetch_rss_feed_success
 # Run tests with coverage
 uv run pytest --cov --cov-report=html
 
-# Run the app (via OpenClaw deployment script)
-bash scripts/rss.sh fetch|list|doctor|read|import|today|history|full
+# Run the app from the canonical skill folder
+bash skills/holo-rss-reader/scripts/rss.sh fetch|list|doctor|read|import|today|history|full
+
+# Validate skill/plugin packaging
+uv run holo-rss-validate
+uv run holo-rss-sync-plugin --check
+uv run holo-rss-build
 ```
 
 Python 3.11+ required. Uses `uv` as the package manager.
 
 ## Architecture
 
-All source code lives in `scripts/`. Entry point is `scripts/main.py` which defines 8 CLI commands (`import`, `read`, `list`, `fetch`, `today`, `history`, `full`, `doctor`).
+Runtime skill source code lives in `skills/holo-rss-reader/scripts/`. Entry point is `skills/holo-rss-reader/scripts/main.py` which defines CLI commands (`import`, `read`, `list`, `fetch`, `today`, `history`, `full`, `doctor`, `wechat`). Packaging tooling lives in `src/holo_rss_reader_skills/`.
 
 **Data flow for `fetch` command (the primary operation):**
 `main.py` → `feeds.py` (collect feeds from Gist OPML + local feeds.json) → `fetcher.py` (concurrent fetch with ThreadPoolExecutor) → `parser.py` (extract articles) → `store.py` (update state, write digest)
@@ -64,7 +69,7 @@ All source code lives in `scripts/`. Entry point is `scripts/main.py` which defi
 
 ## Testing
 
-Uses pytest with `responses` library for HTTP mocking. Fixtures in `fixtures/` (sample RSS, OPML, Gist JSON). 25 test files organized by module with >90% coverage target. CI runs on Python 3.11 and 3.12.
+Uses pytest with `responses` library for HTTP mocking. Fixtures in `fixtures/` (sample RSS, OPML, Gist JSON). Tests import runtime modules from `skills/holo-rss-reader/scripts/`. CI runs on Python 3.11 and 3.12.
 
 ## Environment Variables
 

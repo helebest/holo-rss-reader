@@ -1,4 +1,4 @@
-"""
+﻿"""
 Tests for Gist/OPML parsing functionality.
 """
 import pytest
@@ -6,7 +6,7 @@ import responses
 from pathlib import Path
 
 import sys
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import gist
 
@@ -158,3 +158,4 @@ def test_parse_opml_rejects_dtd_entity_payload():
 
     feeds = gist.parse_opml(malicious)
     assert feeds == []
+

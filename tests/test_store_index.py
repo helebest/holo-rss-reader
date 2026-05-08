@@ -1,10 +1,10 @@
-"""
+﻿"""
 Tests for full article index behavior.
 """
 from pathlib import Path
 import sys
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import store
 
@@ -57,3 +57,4 @@ def test_lookup_full_article_cleans_stale_index(monkeypatch, tmp_path):
     # stale entry should be removed lazily
     entries = index.get("articles", {})
     assert len(entries) == 0
+

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Tests for HTTP client helpers.
 """
 from pathlib import Path
@@ -8,7 +8,7 @@ import requests
 import responses
 from urllib3.util.retry import Retry
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import http_client
 
@@ -124,3 +124,4 @@ def test_fetch_text_returns_429_when_direct_retry_also_fails(monkeypatch):
     assert result.status_code == 429
     assert result.error == "HTTP 429"
     assert len(responses.calls) == 2
+

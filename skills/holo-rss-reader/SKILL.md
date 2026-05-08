@@ -1,7 +1,6 @@
 ---
 name: holo-rss-reader
 description: RSS/Atom feed reader and daily digest generator with WeChat Official Accounts (微信公众号) bridging via wechat2rss. Use this skill whenever the user wants to subscribe to RSS, Atom, or RDF feeds, import an OPML from a GitHub Gist, read blog articles, fetch news summaries, generate a daily digest, cache full article text, manage feed subscriptions, subscribe to 微信公众号, or diagnose RSS runtime issues. Trigger phrases include — "今天有什么新闻", "帮我抓取文章", "看看公众号更新", "公众号新文章", "RSS 订阅源", "OPML 导入", "文章全文缓存", "每日摘要", "订阅博客", "订阅 新智元", "check my feeds", "fetch latest articles", "generate today's digest". Do not use this skill for generic web scraping, Twitter/X timelines, or fetching arbitrary non-RSS webpages — it only handles RSS/Atom/RDF and wechat2rss-indexed accounts.
-homepage: https://github.com/helebest/holo-rss-reader
 ---
 
 # Holo RSS Reader

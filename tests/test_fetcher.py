@@ -1,4 +1,4 @@
-"""
+﻿"""
 Tests for RSS/Atom fetching functionality.
 """
 import pytest
@@ -8,7 +8,7 @@ import feedparser
 import requests
 
 import sys
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "holo-rss-reader" / "scripts"))
 
 import fetcher
 
@@ -120,3 +120,4 @@ class TestGetFeedInfo:
         assert info["title"] == "Test RSS Feed"
         assert info["link"] == "https://example.com"
         assert info["description"] == "A test RSS feed"
+
