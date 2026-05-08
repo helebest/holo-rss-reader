@@ -10,6 +10,7 @@ wheels/
 # Virtual environments
 .venv
 .uv-cache/
+.npm-cache/
 
 # Local temp/work dirs
 .tmp/

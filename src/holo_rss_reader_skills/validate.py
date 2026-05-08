@@ -15,6 +15,7 @@ PLUGIN_SKILLS_DIR = PLUGIN_ROOT / "skills"
 CODEX_PLUGIN_MANIFEST = PLUGIN_ROOT / ".codex-plugin" / "plugin.json"
 CLAUDE_PLUGIN_MANIFEST = PLUGIN_ROOT / ".claude-plugin" / "plugin.json"
 OPENCLAW_PLUGIN_MANIFEST = PLUGIN_ROOT / "openclaw.plugin.json"
+OPENCLAW_PACKAGE_JSON = PLUGIN_ROOT / "package.json"
 MARKETPLACE_PATH = ROOT / ".agents" / "plugins" / "marketplace.json"
 SKILL_NAMES = ["holo-rss-reader"]
 BANNED_NAMES = {
@@ -120,6 +121,30 @@ def validate_plugin_manifests() -> None:
             raise ValidationError(f"{manifest} version must match pyproject.toml")
         if data.get("skills") != expected_skills:
             raise ValidationError(f"{manifest} skills must be {expected_skills!r}")
+
+    package_json = load_json(OPENCLAW_PACKAGE_JSON)
+    if package_json.get("name") != PLUGIN_NAME:
+        raise ValidationError(f"{OPENCLAW_PACKAGE_JSON} name must be {PLUGIN_NAME}")
+    if package_json.get("version") != version:
+        raise ValidationError(f"{OPENCLAW_PACKAGE_JSON} version must match pyproject.toml")
+    if package_json.get("type") != "module":
+        raise ValidationError(f"{OPENCLAW_PACKAGE_JSON} type must be module")
+    if package_json.get("private") is not False:
+        raise ValidationError(f"{OPENCLAW_PACKAGE_JSON} private must be false")
+    if package_json.get("files") != ["openclaw.plugin.json", "skills"]:
+        raise ValidationError(
+            f"{OPENCLAW_PACKAGE_JSON} files must include only openclaw.plugin.json and skills"
+        )
+
+    openclaw = package_json.get("openclaw")
+    if not isinstance(openclaw, dict):
+        raise ValidationError(f"{OPENCLAW_PACKAGE_JSON} must contain openclaw metadata")
+    compat = openclaw.get("compat")
+    build = openclaw.get("build")
+    if not isinstance(compat, dict) or not compat.get("pluginApi"):
+        raise ValidationError(f"{OPENCLAW_PACKAGE_JSON} missing openclaw.compat.pluginApi")
+    if not isinstance(build, dict) or not build.get("openclawVersion"):
+        raise ValidationError(f"{OPENCLAW_PACKAGE_JSON} missing openclaw.build.openclawVersion")
 
 
 def validate_marketplace() -> None:

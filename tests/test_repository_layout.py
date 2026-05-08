@@ -22,6 +22,8 @@ from holo_rss_reader_skills.validate import (
     validate_all,
 )
 
+OPENCLAW_PACKAGE_JSON = ROOT / "plugins" / PLUGIN_NAME / "package.json"
+
 
 def project_version() -> str:
     match = re.search(
@@ -73,6 +75,24 @@ def test_plugin_manifest_versions_match_project_version() -> None:
         data = json.loads(manifest.read_text(encoding="utf-8"))
         assert data["name"] == PLUGIN_NAME
         assert data["version"] == version
+
+
+def test_openclaw_plugin_package_is_clawpack_ready() -> None:
+    version = project_version()
+    package_json = json.loads(OPENCLAW_PACKAGE_JSON.read_text(encoding="utf-8"))
+
+    assert package_json["name"] == PLUGIN_NAME
+    assert package_json["version"] == version
+    assert package_json["type"] == "module"
+    assert package_json["private"] is False
+    assert package_json["files"] == [
+        "openclaw.plugin.json",
+        "skills",
+    ]
+
+    openclaw = package_json["openclaw"]
+    assert openclaw["compat"]["pluginApi"] == ">=2026.3.24-beta.2"
+    assert openclaw["build"]["openclawVersion"] == "2026.3.24-beta.2"
 
 
 def test_plugin_wrapper_and_codex_marketplace_are_valid() -> None:
@@ -142,6 +162,8 @@ def test_build_outputs_are_generated_from_canonical_skills() -> None:
         with zipfile.ZipFile(ROOT / "dist" / artifact_name) as archive:
             names = archive.namelist()
         assert manifest_path in names
+        if manifest_path == "openclaw.plugin.json":
+            assert "package.json" in names
         for skill_name in SKILL_NAMES:
             assert f"skills/{skill_name}/SKILL.md" in names
         assert not any(name.startswith("src/") for name in names)

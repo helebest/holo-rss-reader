@@ -1,0 +1,32 @@
+{
+  "name": "holo-rss-reader",
+  "version": "1.1.0",
+  "description": "RSS/Atom feed reader and daily digest skill with Gist OPML import, full-article caching, and WeChat Official Accounts bridging.",
+  "displayName": "holo RSS Reader",
+  "type": "module",
+  "private": false,
+  "license": "MIT",
+  "homepage": "https://github.com/helebest/holo-rss-reader",
+  "keywords": [
+    "rss",
+    "atom",
+    "opml",
+    "wechat",
+    "daily-digest",
+    "agent-skills",
+    "openclaw",
+    "clawhub"
+  ],
+  "files": [
+    "openclaw.plugin.json",
+    "skills"
+  ],
+  "openclaw": {
+    "compat": {
+      "pluginApi": ">=2026.3.24-beta.2"
+    },
+    "build": {
+      "openclawVersion": "2026.3.24-beta.2"
+    }
+  }
+}
