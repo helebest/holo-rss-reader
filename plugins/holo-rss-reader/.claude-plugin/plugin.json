@@ -1,7 +1,7 @@
 {
   "name": "holo-rss-reader",
   "description": "RSS/Atom feed reader and daily digest skill with Gist OPML import, full-article caching, and WeChat Official Accounts bridging.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "author": {
     "name": "holo"
   },
